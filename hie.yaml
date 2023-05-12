@@ -1,0 +1,13 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "incremental-computations:lib"
+
+    - path: "./app/Main.hs"
+      component: "incremental-computations:exe:incremental-computations-exe"
+
+    - path: "./app/Paths_incremental_computations.hs"
+      component: "incremental-computations:exe:incremental-computations-exe"
+
+    - path: "./test"
+      component: "incremental-computations:test:incremental-computations-test"

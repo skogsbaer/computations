@@ -1,0 +1,267 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.35.1.
+--
+-- see: https://github.com/sol/hpack
+
+name:           incremental-computations
+version:        0.1.0.0
+synopsis:       A framework for incremental computations
+description:    Please see the README on GitHub at <https://github.com/githubuser/incremental-computations>
+category:       Control
+homepage:       https://github.com/skogsbaer/incremental-computations#readme
+bug-reports:    https://github.com/skogsbaer/incremental-computations/issues
+author:         medilyse GmbH, Freiburg, Germany (https://medilyse.org)
+maintainer:     Stefan Wehr
+copyright:      2010-2023 medilyse GmbH
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    CHANGELOG.md
+
+source-repository head
+  type: git
+  location: https://github.com/skogsbaer/incremental-computations
+
+library
+  exposed-modules:
+      Control.IncComps.CompEngine
+      Control.IncComps.CompEngine.CacheBehaviors
+      Control.IncComps.CompEngine.CompDef
+      Control.IncComps.CompEngine.CompEval
+      Control.IncComps.CompEngine.CompFlow
+      Control.IncComps.CompEngine.CompFlowRegistry
+      Control.IncComps.CompEngine.CompSink
+      Control.IncComps.CompEngine.CompSrc
+      Control.IncComps.CompEngine.Core
+      Control.IncComps.CompEngine.Impl
+      Control.IncComps.CompEngine.Run
+      Control.IncComps.CompEngine.SifCache
+      Control.IncComps.CompEngine.SimpleStateIf
+      Control.IncComps.CompEngine.Tests.TestCompEngine
+      Control.IncComps.CompEngine.Tests.TestDynamicChanges
+      Control.IncComps.CompEngine.Tests.TestHelper
+      Control.IncComps.CompEngine.Tests.TestOutputs
+      Control.IncComps.CompEngine.Tests.TestRevive
+      Control.IncComps.CompEngine.Tests.TestRun
+      Control.IncComps.CompEngine.Tests.TestStateIf
+      Control.IncComps.CompEngine.Types
+      Control.IncComps.CompEngine.Utils.DepMap
+      Control.IncComps.CompEngine.Utils.OutputsMap
+      Control.IncComps.CompEngine.Utils.PriorityAgingQueue
+      Control.IncComps.CompEngine.Utils.VerList
+      Control.IncComps.Demos.DirSync.Main
+      Control.IncComps.Demos.DirSync.Tests
+      Control.IncComps.Demos.Main
+      Control.IncComps.FlowImpls.CompLogging
+      Control.IncComps.FlowImpls.FileSink
+      Control.IncComps.FlowImpls.FileSrc
+      Control.IncComps.FlowImpls.HashMapFlow
+      Control.IncComps.FlowImpls.IOSink
+      Control.IncComps.FlowImpls.TimeSrc
+      Control.IncComps.Utils.Ansi
+      Control.IncComps.Utils.Clock
+      Control.IncComps.Utils.ConcUtils
+      Control.IncComps.Utils.DataSize
+      Control.IncComps.Utils.Fail
+      Control.IncComps.Utils.FileWatch
+      Control.IncComps.Utils.Hash
+      Control.IncComps.Utils.IOUtils
+      Control.IncComps.Utils.Logging
+      Control.IncComps.Utils.MultiMap
+      Control.IncComps.Utils.MultiSet
+      Control.IncComps.Utils.SourceLocation
+      Control.IncComps.Utils.StrictList
+      Control.IncComps.Utils.TimeSpan
+      Control.IncComps.Utils.TimeUtils
+      Control.IncComps.Utils.Tuple
+      Control.IncComps.Utils.Types
+      Control.IncComps.Utils.VirtualTime
+  other-modules:
+      Paths_incremental_computations
+  hs-source-dirs:
+      src
+  default-extensions:
+      BangPatterns
+      DeriveDataTypeable
+      DeriveFoldable
+      DeriveFunctor
+      DeriveGeneric
+      DeriveTraversable
+      DerivingStrategies
+      DoAndIfThenElse
+      EmptyDataDecls
+      FlexibleContexts
+      GADTs
+      GeneralizedNewtypeDeriving
+      LambdaCase
+      OverloadedStrings
+      ScopedTypeVariables
+      StandaloneDeriving
+      StrictData
+      TypeApplications
+      TypeOperators
+      ViewPatterns
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wno-name-shadowing -Wpartial-fields -Wredundant-constraints -Werror
+  build-depends:
+      HTF
+    , QuickCheck
+    , async
+    , base >=4.7 && <5
+    , base16-bytestring
+    , bytestring
+    , cereal
+    , cereal-text
+    , containers
+    , directory
+    , exceptions
+    , filepath
+    , ghc-prim
+    , hashable
+    , hslogger
+    , large-hashable
+    , monad-control
+    , mtl
+    , optparse-applicative
+    , psqueues
+    , resourcet
+    , safe
+    , stm
+    , strict
+    , strict-list
+    , temporary
+    , text
+    , time
+    , transformers-base
+    , unix
+    , unordered-containers
+  default-language: Haskell2010
+
+executable incremental-computations-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_incremental_computations
+  hs-source-dirs:
+      app
+  default-extensions:
+      BangPatterns
+      DeriveDataTypeable
+      DeriveFoldable
+      DeriveFunctor
+      DeriveGeneric
+      DeriveTraversable
+      DerivingStrategies
+      DoAndIfThenElse
+      EmptyDataDecls
+      FlexibleContexts
+      GADTs
+      GeneralizedNewtypeDeriving
+      LambdaCase
+      OverloadedStrings
+      ScopedTypeVariables
+      StandaloneDeriving
+      StrictData
+      TypeApplications
+      TypeOperators
+      ViewPatterns
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wno-name-shadowing -Wpartial-fields -Wredundant-constraints -Werror -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      HTF
+    , QuickCheck
+    , async
+    , base >=4.7 && <5
+    , base16-bytestring
+    , bytestring
+    , cereal
+    , cereal-text
+    , containers
+    , directory
+    , exceptions
+    , filepath
+    , ghc-prim
+    , hashable
+    , hslogger
+    , incremental-computations
+    , large-hashable
+    , monad-control
+    , mtl
+    , optparse-applicative
+    , psqueues
+    , resourcet
+    , safe
+    , stm
+    , strict
+    , strict-list
+    , temporary
+    , text
+    , time
+    , transformers-base
+    , unix
+    , unordered-containers
+  default-language: Haskell2010
+
+test-suite incremental-computations-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_incremental_computations
+  hs-source-dirs:
+      test
+  default-extensions:
+      BangPatterns
+      DeriveDataTypeable
+      DeriveFoldable
+      DeriveFunctor
+      DeriveGeneric
+      DeriveTraversable
+      DerivingStrategies
+      DoAndIfThenElse
+      EmptyDataDecls
+      FlexibleContexts
+      GADTs
+      GeneralizedNewtypeDeriving
+      LambdaCase
+      OverloadedStrings
+      ScopedTypeVariables
+      StandaloneDeriving
+      StrictData
+      TypeApplications
+      TypeOperators
+      ViewPatterns
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wno-name-shadowing -Wpartial-fields -Wredundant-constraints -Werror -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      HTF
+    , QuickCheck
+    , async
+    , base >=4.7 && <5
+    , base16-bytestring
+    , bytestring
+    , cereal
+    , cereal-text
+    , containers
+    , directory
+    , exceptions
+    , filepath
+    , ghc-prim
+    , hashable
+    , hslogger
+    , incremental-computations
+    , large-hashable
+    , monad-control
+    , mtl
+    , optparse-applicative
+    , psqueues
+    , resourcet
+    , safe
+    , stm
+    , strict
+    , strict-list
+    , temporary
+    , text
+    , time
+    , transformers-base
+    , unix
+    , unordered-containers
+  default-language: Haskell2010

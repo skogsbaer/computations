@@ -1,0 +1,37 @@
+resolver: nightly-2023-05-08
+
+packages:
+- .
+
+extra-deps:
+- git: https://github.com/factisresearch/large-hashable.git
+  commit: 4d149c828c185bcf05556d1660f79ff1aec7eaa1
+- algebraic-graphs-0.6.1@sha256:528bddb6a58e175c0b37446d4621b5ffd2dadc9d53910b61ddafb0e81088f4bc,8625
+  # for weeder (dead code elimination)
+
+ghc-options:
+  "$locals": -fwrite-ide-info
+
+# Override default flag values for local packages and extra-deps
+# flags: {}
+
+# Extra package databases containing global packages
+# extra-package-dbs: []
+
+# Control whether we use the GHC we find on the path
+# system-ghc: true
+#
+# Require a specific version of Stack, using version ranges
+# require-stack-version: -any # Default
+# require-stack-version: ">=2.9"
+#
+# Override the architecture used by Stack, especially useful on Windows
+# arch: i386
+# arch: x86_64
+#
+# Extra directories used by Stack for building
+# extra-include-dirs: [/path/to/dir]
+# extra-lib-dirs: [/path/to/dir]
+#
+# Allow a newer minor version of GHC than the snapshot specifies
+# compiler-check: newer-minor

@@ -1,0 +1,108 @@
+name:                incremental-computations
+version:             0.1.0.0
+github:              "skogsbaer/incremental-computations"
+license:             BSD3
+author:              "medilyse GmbH, Freiburg, Germany (https://medilyse.org)"
+maintainer:          "Stefan Wehr"
+copyright:           "2010-2023 medilyse GmbH"
+
+extra-source-files:
+  - README.md
+  - CHANGELOG.md
+
+synopsis:            A framework for incremental computations
+category:            Control
+description:         Please see the README on GitHub at <https://github.com/githubuser/incremental-computations>
+
+dependencies:
+  - HTF
+  - QuickCheck
+  - async
+  - base >= 4.7 && < 5
+  - base16-bytestring
+  - bytestring
+  - cereal
+  - cereal-text
+  - containers
+  - directory
+  - exceptions
+  - filepath
+  - ghc-prim
+  - hashable
+  - hslogger
+  - large-hashable
+  - monad-control
+  - mtl
+  - optparse-applicative
+  - psqueues
+  - resourcet
+  - safe
+  - stm
+  - strict
+  - strict-list
+  - temporary
+  - text
+  - time
+  - transformers-base
+  - unix
+  - unordered-containers
+
+ghc-options:
+  - -Wall
+  - -Wcompat
+  - -Widentities
+  - -Wincomplete-record-updates
+  - -Wincomplete-uni-patterns
+  - -Wmissing-export-lists
+  - -Wmissing-home-modules
+  - -Wno-name-shadowing
+  - -Wpartial-fields
+  - -Wredundant-constraints
+  - -Werror
+
+default-extensions:
+  - BangPatterns
+  - DeriveDataTypeable
+  - DeriveFoldable
+  - DeriveFunctor
+  - DeriveGeneric
+  - DeriveTraversable
+  - DerivingStrategies
+  - DoAndIfThenElse
+  - EmptyDataDecls
+  - FlexibleContexts
+  - GADTs
+  - GeneralizedNewtypeDeriving
+  - LambdaCase
+  - OverloadedStrings
+  - ScopedTypeVariables
+  - StandaloneDeriving
+  - StrictData
+  - TypeApplications
+  - TypeOperators
+  - ViewPatterns
+
+library:
+  source-dirs: src
+
+executables:
+  incremental-computations-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - incremental-computations
+
+tests:
+  incremental-computations-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - incremental-computations

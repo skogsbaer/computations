@@ -1,0 +1,3 @@
+#!/bin/bash
+
+weeder --hie-directory .stack-work/dist/x86_64-osx/Cabal-3.8.1.0/build --require-hs-files

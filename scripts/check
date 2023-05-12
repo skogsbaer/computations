@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -e
+
+cd $(dirname $0)/..
+
+echo "Checking source formatting ..."
+scripts/format-src --check
+
+echo "Compiling and running tests ..."
+stack clean
+stack test --fast
+
+echo "Running hlint ..."
+hlint lint src test
