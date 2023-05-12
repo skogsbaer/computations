@@ -8,6 +8,8 @@ module Control.IncComps.Utils.Types (
   option,
   maybeToOption,
   optionToMaybe,
+  isNone,
+  isSome,
   fromOption,
   showText,
   shorten,
@@ -107,6 +109,14 @@ option def f opt =
 fromOption :: a -> Option a -> a
 fromOption _ (Some x) = x
 fromOption x None = x
+
+isNone :: Option a -> Bool
+isNone None = True
+isNone (Some _) = False
+
+isSome :: Option a -> Bool
+isSome None = False
+isSome (Some _) = True
 
 data Choice a b
   = This a

@@ -45,15 +45,15 @@ test_dontDeleteAfterRevival = runCompEngineTest compDefs shouldStartNextRun () d
       mkComp "main" inMemoryShowCaching $ \() ->
         do
           doSecond <- liftM isYes (get "second")
-          evalComp' intermediateComp ()
-          when doSecond (evalComp' writeComp ())
+          evalCompOrFail intermediateComp ()
+          when doSecond (evalCompOrFail writeComp ())
           return ()
     intermediateCompDef :: Comp () () -> CompDef () ()
     intermediateCompDef writeComp =
       mkComp "intermediate" inMemoryShowCaching $ \() ->
         do
           doFirst <- liftM isYes (get "first")
-          when doFirst (evalComp' writeComp ())
+          when doFirst (evalCompOrFail writeComp ())
     writeCompDef :: CompDef () ()
     writeCompDef =
       mkComp "write" inMemoryShowCaching $ \() ->

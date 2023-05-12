@@ -90,9 +90,9 @@ test_ifTwoCompApsProduceTheSameOutputAndOneOfThemDiesTheOutputIsNotDeleted =
     mainCompDef subComp =
       mkComp "main" inMemoryShowCaching $ \() ->
         do
-          evalComp' subComp False
+          evalCompOrFail subComp False
           flag <- isYes <$> get "flag-main"
-          when flag (evalComp' subComp True)
+          when flag (evalCompOrFail subComp True)
   doTest _hmf = return () -- see asserts in shouldStartNextRun
   shouldStartNextRun :: HashMapFlow -> Int -> Bool -> Int -> () -> IO (NextRun, ())
   shouldStartNextRun hmf run _ _numStale s
@@ -132,7 +132,7 @@ test_whenComputationIsNotCalledAnymoreItsOutputIsDeleted =
       mkComp "main" inMemoryShowCaching $ \() ->
         do
           flag <- liftM isYes (get "flag")
-          when flag (evalComp' subComp ())
+          when flag (evalCompOrFail subComp ())
   doTest hmf =
     hmfLookup hmf "output" >>= assertNothing
   shouldStartNextRun :: HashMapFlow -> Int -> Bool -> Int -> () -> IO (NextRun, ())
@@ -171,7 +171,7 @@ test_whenOneComputationGeneratingOutputDiesAndAnotherReplacesItTheOutputIsNotDel
       mkComp "main" inMemoryShowCaching $ \() ->
         do
           flag <- liftM isYes (get "flag")
-          evalComp' subComp flag
+          evalCompOrFail subComp flag
   doTest hmf =
     hmfLookup hmf "output" >>= assertJust >>= assertEqual "dummy"
   shouldStartNextRun :: HashMapFlow -> Int -> Bool -> Int -> () -> IO (NextRun, ())
@@ -208,7 +208,7 @@ test_oneComputationRecomputedButOtherUnreferencesIt =
     subCompDef commonComp =
       mkComp "asub" inMemoryShowCaching $ \_ ->
         do
-          flag <- evalComp' commonComp ()
+          flag <- evalCompOrFail commonComp ()
           pureInfo "Generating sub output" $
             put "sub_output" (C8.pack $ show flag)
     mainCompDef
@@ -218,9 +218,9 @@ test_oneComputationRecomputedButOtherUnreferencesIt =
     mainCompDef commonComp subComp =
       mkComp "main" inMemoryShowCaching $ \() ->
         do
-          flag <- evalComp' commonComp ()
+          flag <- evalCompOrFail commonComp ()
           unless flag $
-            pureInfo "Evaluating subComp" (evalComp' subComp flag)
+            pureInfo "Evaluating subComp" (evalCompOrFail subComp flag)
   allOutputExists hmf =
     do
       hmfLookup hmf "sub_output" >>= assertJust >>= assertEqual "False"

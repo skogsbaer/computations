@@ -36,10 +36,16 @@ module Control.IncComps.Utils.TimeSpan (
 -- EXTERNAL
 ----------------------------------------
 import Data.Time.Clock
+import Data.Hashable
+import Data.LargeHashable
+import GHC.Generics (Generic)
 
 -- | Represents a time span with microsecond resolution.
 newtype TimeSpan = TimeSpan {unTimeSpan :: Integer}
-  deriving newtype (Eq, Ord, Num)
+  deriving newtype (Eq, Ord, Num, Hashable)
+  deriving stock (Generic)
+
+instance LargeHashable TimeSpan
 
 instance Show TimeSpan where
   showsPrec _ (TimeSpan t)

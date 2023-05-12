@@ -54,6 +54,10 @@ library
       Control.IncComps.CompEngine.Utils.VerList
       Control.IncComps.Demos.DirSync.Main
       Control.IncComps.Demos.DirSync.Tests
+      Control.IncComps.Demos.Hospital.CompDefs
+      Control.IncComps.Demos.Hospital.Config
+      Control.IncComps.Demos.Hospital.PatEventSrc
+      Control.IncComps.Demos.Hospital.PatTypes
       Control.IncComps.Demos.Main
       Control.IncComps.FlowImpls.CompLogging
       Control.IncComps.FlowImpls.FileSink

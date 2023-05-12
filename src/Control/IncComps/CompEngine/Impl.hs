@@ -146,14 +146,15 @@ evalCompEngineM cet env =
       fail ("evalCompEngineM produced garbage that would be ignored: " ++ show g)
     return x
 
-initGenAp
+initCompAp
   :: CompAp a
   -> CompM a
-initGenAp (CompAp{cap_comp = gen, cap_param = p}) = comp_fun gen env
+initCompAp cap@(CompAp{cap_comp = gen, cap_param = p}) = comp_fun gen env
  where
   env =
     CompEnv
-      { ce_param = p
+      { ce_cachedResult = doAnyRequest $ CompReqCache cap
+      , ce_param = p
       , ce_comp = gen
       }
 
@@ -163,13 +164,13 @@ withCompState mkAction =
     do
       action <- asks (mkAction . ce_stateIf . ce_compEngineIfs)
       lift (lift action)
-doGenAp
+doCompAp
   :: CompAp a
   -> CompEngineM (Maybe (CompApResult a))
-doGenAp gap =
+doCompAp gap =
   do
     withCompState $ \sif -> capEvaluationStarted sif gap
-    (deps, res) <- evalGenAp gap
+    (deps, res) <- evalCompAp gap
     maybeRes <-
       case res of
         CompResultFail msg -> logNote ("Cap " ++ show gap ++ " failed: " ++ msg) >> return Nothing
@@ -184,14 +185,14 @@ doGenAp gap =
     logStale ("Eval of " ++ show gap) staleCaps
     return maybeRes
 
-evalGenAp
+evalCompAp
   :: forall a
    . CompAp a
   -> CompEngineM (DepSet, CompResult (CompApResult a))
-evalGenAp outerCap =
+evalCompAp outerCap =
   do
     logDebug ("Evaluating " ++ show outerCap)
-    result@(_, !ev) <- fmap (fmap (fmap (compApResult outerCap))) $ loop (initGenAp outerCap)
+    result@(_, !ev) <- fmap (fmap (fmap (compApResult outerCap))) $ loop (initCompAp outerCap)
     logDebug
       ( show outerCap
           ++ " --> "
@@ -216,7 +217,7 @@ evalGenAp outerCap =
     -> CompCont (Maybe (CompApResult x)) a
     -> CompEngineM (DepSet, CompResult a)
   doAnyEvalReq innerCap k =
-    evalWithCache False innerCap k (doGenAp innerCap)
+    evalWithCache False innerCap k (doCompAp innerCap)
 
   doAnyCacheReq
     :: forall a x
@@ -389,7 +390,7 @@ evalGenAp outerCap =
         return (w'', res)
 
 execAp :: AnyCompAp -> CompEngineM ()
-execAp (AnyCompAp cap) = void $ doGenAp cap
+execAp (AnyCompAp cap) = void $ doCompAp cap
 
 initCompEngine :: CompEngineIfs -> IO CompEngine
 initCompEngine compEngineIfs = return (CompEngine compEngineIfs)
@@ -420,7 +421,7 @@ evalWithCompEngine
   -> CompAp r
   -> IO (Maybe r)
 evalWithCompEngine compEngine genAp =
-  evalCompEngineM (liftM (fmap cr_returnValue) (doGenAp genAp)) compEngine
+  evalCompEngineM (liftM (fmap cr_returnValue) (doCompAp genAp)) compEngine
 
 notifyCompEngine
   :: CompEngine

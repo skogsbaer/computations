@@ -151,7 +151,8 @@ type CompFun p a = p -> CompM a
 type CompFunX p a = CompEnv p a -> CompM a
 
 data CompEnv p r = CompEnv
-  { ce_param :: p
+  { ce_cachedResult :: IsCompResult r => CompM (Maybe r)
+  , ce_param :: p
   , ce_comp :: Comp p r
   }
 

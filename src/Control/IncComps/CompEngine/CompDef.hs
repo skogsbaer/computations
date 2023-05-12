@@ -11,6 +11,7 @@ module Control.IncComps.CompEngine.CompDef (
   mkComp,
   mkCompX,
   mkCompWithPriority,
+  mkIncComp,
   CompDefM,
   runCompDefM,
   defineComp,
@@ -23,17 +24,20 @@ where
 ----------------------------------------
 
 import Control.IncComps.CompEngine.Types
+import Control.IncComps.CompEngine.CacheBehaviors
 import Control.IncComps.CompEngine.Utils.PriorityAgingQueue (PaqPriority (..))
 import Control.IncComps.Utils.Types
 
 ----------------------------------------
 -- EXTERNAL
 ----------------------------------------
-
+import Data.LargeHashable
+import Data.Typeable
 import Control.Monad.Reader
 import Control.Monad.State.Lazy
 import qualified Data.Map.Strict as Map
 import qualified Data.Text as T
+import Data.Maybe
 
 newtype CompDef p a = CompDef {unCompDef :: CompMap -> Comp p a}
 
@@ -61,6 +65,12 @@ mkCompWithPriority
   -> CompDef p r
 mkCompWithPriority prio name caching fun =
   CompDef $ \cm -> Comp (mkCompIdWithPriority prio name) caching (fun . ce_param) cm
+
+mkIncComp :: (LargeHashable r, Typeable r, Show r) => String -> r -> (p -> r -> CompM r) -> CompDef p r
+mkIncComp name initState updateFun =
+  mkCompX name inMemoryLHCaching $ \ce ->
+ do mCachedValue <- ce_cachedResult ce
+    updateFun (ce_param ce) (fromMaybe initState mCachedValue)
 
 newtype CompDefM a = CompDefM (StateT CompMap Fail a)
   deriving (Functor, Applicative, Monad, MonadFail, MonadFix)

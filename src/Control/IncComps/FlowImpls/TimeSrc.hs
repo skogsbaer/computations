@@ -7,12 +7,17 @@ module Control.IncComps.FlowImpls.TimeSrc (
   initTimeSrc,
   closeTimeSrc,
   withTimeSrc,
+  defaultTimeSrcId,
+  withDefaultTimeSrc,
+  compGetTime,
   htf_thisModulesTests,
 ) where
 
 ----------------------------------------
 -- LOCAL
 ----------------------------------------
+import Control.IncComps.CompEngine.Types
+import Control.IncComps.CompEngine.Core
 import Control.IncComps.CompEngine.CompSrc
 import Control.IncComps.Utils.Clock
 import Control.IncComps.Utils.ConcUtils
@@ -37,6 +42,8 @@ import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import Data.Time.Clock
 import Test.Framework
+import Data.Proxy
+import qualified Data.Text as T
 
 data TimeSrcReq a where
   GetTime :: TimeIntervalType -> TimeSrcReq UTCTime
@@ -56,7 +63,14 @@ data TimeSrc = TimeSrc
   , tcs_state :: TVar (Map TimeIntervalType UTCTime)
   }
 
--- deriving (Typeable)
+defaultTimeSrcInstanceId :: CompSrcInstanceId
+defaultTimeSrcInstanceId = CompSrcInstanceId "defaultTimeSrc"
+
+defaultTimeSrcId :: TypedCompSrcId TimeSrc
+defaultTimeSrcId = typedCompSrcId (Proxy @TimeSrc) defaultTimeSrcInstanceId
+
+compGetTime :: TimeIntervalType -> CompM UTCTime
+compGetTime t = compSrcReq defaultTimeSrcId (GetTime t)
 
 initTimeSrc :: CompSrcInstanceId -> Clock -> IO TimeSrc
 initTimeSrc ident clock = do
@@ -83,6 +97,9 @@ closeTimeSrc tcs = cancel (tcs_thread tcs)
 withTimeSrc :: CompSrcInstanceId -> Clock -> (TimeSrc -> IO a) -> IO a
 withTimeSrc ident clock =
   bracket (initTimeSrc ident clock) closeTimeSrc
+
+withDefaultTimeSrc :: (TimeSrc -> IO a) -> IO a
+withDefaultTimeSrc = withTimeSrc defaultTimeSrcInstanceId realClock
 
 instance CompSrc TimeSrc where
   type CompSrcReq TimeSrc = TimeSrcReq

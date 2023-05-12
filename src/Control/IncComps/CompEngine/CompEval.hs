@@ -6,7 +6,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Control.IncComps.CompEngine.CompEval (evalComp, evalComp', mkCompDepForCap) where
+module Control.IncComps.CompEngine.CompEval (evalComp, evalCompOrFail, mkCompDepForCap) where
 
 ----------------------------------------
 -- LOCAL
@@ -36,12 +36,12 @@ evalComp comp p =
  where
   compAp = mkCompAp comp p
 
-evalComp'
+evalCompOrFail
   :: (HasCallStack, IsCompParam p, IsCompResult a)
   => Comp p a
   -> p
   -> CompM a
-evalComp' comp p = do
+evalCompOrFail comp p = do
   res <- evalComp comp p
   case res of
     Just x -> pure x
