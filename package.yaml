@@ -33,7 +33,6 @@ dependencies:
   - large-hashable
   - monad-control
   - mtl
-  - optparse-applicative
   - psqueues
   - resourcet
   - safe
@@ -95,6 +94,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - incremental-computations
+    - optparse-applicative
 
 tests:
   incremental-computations-test:

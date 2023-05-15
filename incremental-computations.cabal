@@ -52,13 +52,6 @@ library
       Control.IncComps.CompEngine.Utils.OutputsMap
       Control.IncComps.CompEngine.Utils.PriorityAgingQueue
       Control.IncComps.CompEngine.Utils.VerList
-      Control.IncComps.Demos.DirSync.Main
-      Control.IncComps.Demos.DirSync.Tests
-      Control.IncComps.Demos.Hospital.CompDefs
-      Control.IncComps.Demos.Hospital.Config
-      Control.IncComps.Demos.Hospital.PatEventSrc
-      Control.IncComps.Demos.Hospital.PatTypes
-      Control.IncComps.Demos.Main
       Control.IncComps.FlowImpls.CompLogging
       Control.IncComps.FlowImpls.FileSink
       Control.IncComps.FlowImpls.FileSrc
@@ -128,7 +121,6 @@ library
     , large-hashable
     , monad-control
     , mtl
-    , optparse-applicative
     , psqueues
     , resourcet
     , safe
@@ -146,6 +138,13 @@ library
 executable incremental-computations-exe
   main-is: Main.hs
   other-modules:
+      Control.IncComps.Demos.DirSync.Main
+      Control.IncComps.Demos.DirSync.Tests
+      Control.IncComps.Demos.Hospital.CompDefs
+      Control.IncComps.Demos.Hospital.Config
+      Control.IncComps.Demos.Hospital.PatEventSrc
+      Control.IncComps.Demos.Hospital.PatTypes
+      Control.IncComps.Demos.Main
       Paths_incremental_computations
   hs-source-dirs:
       app
@@ -255,7 +254,6 @@ test-suite incremental-computations-test
     , large-hashable
     , monad-control
     , mtl
-    , optparse-applicative
     , psqueues
     , resourcet
     , safe
