@@ -9,7 +9,8 @@ scripts/format-src --check
 
 echo "Compiling and running tests ..."
 stack clean
-stack test --fast
+stack test
+stack run -- test
 
 echo "Running hlint ..."
-hlint lint src test
+hlint lint src test app

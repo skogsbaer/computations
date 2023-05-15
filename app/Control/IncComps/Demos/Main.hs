@@ -4,6 +4,7 @@ module Control.IncComps.Demos.Main (main) where
 -- LOCAL
 ----------------------------------------
 import Control.IncComps.Demos.DirSync.Main
+import Control.IncComps.Demos.Tests
 import Control.IncComps.Utils.Logging
 
 ----------------------------------------
@@ -20,11 +21,14 @@ data Options = Options
 
 data Command
   = DirSync DirSyncOptions
+  | RunTests TestOptions
 
 data DirSyncOptions = DirSyncOptions
   { dso_sourceDir :: FilePath
   , dso_targetDir :: FilePath
   }
+
+data TestOptions = TestOptions -- empty for now
 
 optionsParser :: Parser Options
 optionsParser =
@@ -39,7 +43,7 @@ optionsParser =
       )
     <*> hsubparser
       ( command "sync" (DirSync <$> info syncCommand (progDesc "Demo syncing a directory to some other directory"))
-      -- <> command "commit" (info commitCommand ( progDesc "Record changes to the repository" ))
+          <> command "test" (RunTests <$> info testCommand (progDesc "Run the tests"))
       )
  where
   syncCommand :: Parser DirSyncOptions
@@ -55,6 +59,8 @@ optionsParser =
             <> metavar "DIR"
             <> help "Target directory"
         )
+  testCommand :: Parser TestOptions
+  testCommand = pure TestOptions
 
 main :: IO ()
 main =
@@ -63,6 +69,7 @@ main =
     setupLogging (opt_logLevel opts)
     case opt_command opts of
       DirSync syncOpts -> syncDirs (dso_sourceDir syncOpts) (dso_targetDir syncOpts)
+      RunTests _ -> testMain
  where
   cmdlineParser =
     info

@@ -211,11 +211,11 @@ basicTest =
         let statusMtime = posixSecondsToUTCTime (fs_mtime status)
             msg =
               "Expected timestamp "
-                ++ formatUTCTimeHiRes t
+                ++ formatUTCTimeHiRes' t
                 ++ " is not "
                 ++ cpmDescr
                 ++ " mtime "
-                ++ formatUTCTimeHiRes statusMtime
+                ++ formatUTCTimeHiRes' statusMtime
                 ++ " of "
                 ++ path
         assertBoolVerbose msg (cmp t statusMtime)

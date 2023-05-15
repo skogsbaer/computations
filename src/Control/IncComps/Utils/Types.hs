@@ -34,6 +34,7 @@ import Control.IncComps.Utils.Fail as F
 
 import Control.Applicative
 import Control.Monad
+import Data.Aeson
 import Data.Data
 import Data.Hashable
 import qualified Data.LargeHashable as LH
@@ -91,6 +92,15 @@ instance MonadPlus Option where
 
 instance MonadFail Option where
   fail _ = None
+
+instance ToJSON a => ToJSON (Option a) where
+  toJSON x = toJSON (optionToMaybe x)
+
+instance FromJSON a => FromJSON (Option a) where
+  parseJSON val =
+    do
+      l <- parseJSON val
+      pure (maybeToOption l)
 
 optionToMaybe :: Option a -> Maybe a
 optionToMaybe (Some a) = Just a

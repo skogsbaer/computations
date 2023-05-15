@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-orphans #-}
+
 module Control.IncComps.Utils.StrictList (
   module SL,
   SL,
@@ -16,7 +18,7 @@ module Control.IncComps.Utils.StrictList (
 ----------------------------------------
 -- EXTERNAL
 ----------------------------------------
-
+import Data.Aeson
 import GHC.Exts
 import StrictList as SL
 
@@ -38,3 +40,12 @@ mergeBy cmp = go
       EQ -> SL.Cons a (go as' bs')
   go Nil bs = bs
   go as Nil = as
+
+instance ToJSON a => ToJSON (SL.List a) where
+  toJSON sl = toJSON (toList sl)
+
+instance FromJSON a => FromJSON (SL.List a) where
+  parseJSON val =
+    do
+      l <- parseJSON val
+      pure (fromList l)

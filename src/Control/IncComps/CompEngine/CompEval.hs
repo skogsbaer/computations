@@ -6,7 +6,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Control.IncComps.CompEngine.CompEval (evalComp, evalCompOrFail, mkCompDepForCap) where
+module Control.IncComps.CompEngine.CompEval (evalComp, evalCompOrFail, evalCompWithDefault, mkCompDepForCap) where
 
 ----------------------------------------
 -- LOCAL
@@ -53,6 +53,19 @@ evalCompOrFail comp p = do
               ++ " failed for argument "
               ++ show p
       fail msg
+
+evalCompWithDefault
+  :: (IsCompParam p, IsCompResult a)
+  => Comp p a
+  -> p
+  -> a
+  -> CompM a
+evalCompWithDefault comp p def =
+  do
+    res <- evalComp comp p
+    case res of
+      Nothing -> pure def
+      Just x -> pure x
 
 mkCompDepForCap :: CompAp a -> Maybe a -> CompEngDep
 mkCompDepForCap = mkCompDepForCapHelper mkCompDepVer

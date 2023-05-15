@@ -17,12 +17,14 @@ description:         Please see the README on GitHub at <https://github.com/gith
 dependencies:
   - HTF
   - QuickCheck
+  - aeson
   - async
   - base >= 4.7 && < 5
   - base16-bytestring
   - bytestring
   - cereal
   - cereal-text
+  - direct-sqlite
   - containers
   - directory
   - exceptions
@@ -34,6 +36,7 @@ dependencies:
   - monad-control
   - mtl
   - psqueues
+  - random
   - resourcet
   - safe
   - stm
@@ -93,6 +96,7 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
+    - HTF
     - incremental-computations
     - optparse-applicative
 

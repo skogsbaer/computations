@@ -20,4 +20,4 @@ fi
 
 fourmolu --mode $mode --indentation 2 --function-arrows leading --comma-style leading --import-export-style diff-friendly \
   --indent-wheres false --let-style auto --in-style right-align \
-  $(find src test -name '*.hs')
+  $(find src test app -name '*.hs')

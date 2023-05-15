@@ -9,6 +9,7 @@
 - ignore: {name: "Redundant bracket"}
 - ignore: {name: "Redundant do"}
 - ignore: {name: "Redundant return"}
+- ignore: {name: "Redundant pure"}
 - ignore: {name: "Replace case with maybe"}
 - ignore: {name: "Use <$>"}
 - ignore: {name: "Use const"}
@@ -22,3 +23,4 @@
 - ignore: {name: "Redundant $!" }
 - ignore: {name: "Reduce duplication" }
 - ignore: {name: "Use section" }
+- ignore: {name: "Use uncurry" }

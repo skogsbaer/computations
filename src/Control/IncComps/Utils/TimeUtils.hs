@@ -6,7 +6,13 @@ module Control.IncComps.Utils.TimeUtils (
   parseUTCTime,
   unsafeParseUTCTime,
   formatUTCTime,
+  formatUTCTime',
+  formatUTCTimeNoSeconds,
+  formatUTCTimeNoSeconds',
   formatUTCTimeHiRes,
+  formatUTCTimeHiRes',
+  formatDay,
+  formatDay',
   diffTime,
   addTime,
 ) where
@@ -21,6 +27,8 @@ import Control.IncComps.Utils.TimeSpan
 ----------------------------------------
 import Data.Hashable
 import qualified Data.LargeHashable as LH
+import qualified Data.Text as T
+import Data.Time.Calendar
 import Data.Time.Clock
 import Data.Time.Clock.POSIX
 import Data.Time.Format
@@ -56,8 +64,14 @@ truncateTime t interval = truncateToNSeconds (intervalToSeconds interval) t
 timeFormatString :: String
 timeFormatString = "%Y-%m-%d %H:%M:%S"
 
+timeFormatStringNoSeconds :: String
+timeFormatStringNoSeconds = "%Y-%m-%d %H:%M:%S"
+
 timeFormatStringHiRes :: String
 timeFormatStringHiRes = "%Y-%m-%d %H:%M:%S.%q"
+
+dayFormatString :: String
+dayFormatString = "%Y-%m-%d"
 
 parseUTCTime :: MonadFail m => String -> m UTCTime
 parseUTCTime = parseTimeM True defaultTimeLocale timeFormatString
@@ -68,11 +82,29 @@ unsafeParseUTCTime s =
     Nothing -> error ("Cannot parse " ++ show s ++ " as UTCTime")
     Just t -> t
 
-formatUTCTime :: UTCTime -> String
-formatUTCTime = formatTime defaultTimeLocale timeFormatString
+formatUTCTime :: UTCTime -> T.Text
+formatUTCTime = T.pack . formatUTCTime'
 
-formatUTCTimeHiRes :: UTCTime -> String
-formatUTCTimeHiRes = formatTime defaultTimeLocale timeFormatStringHiRes
+formatUTCTime' :: UTCTime -> String
+formatUTCTime' = formatTime defaultTimeLocale timeFormatString
+
+formatUTCTimeNoSeconds :: UTCTime -> T.Text
+formatUTCTimeNoSeconds = T.pack . formatUTCTimeNoSeconds'
+
+formatUTCTimeNoSeconds' :: UTCTime -> String
+formatUTCTimeNoSeconds' = formatTime defaultTimeLocale timeFormatStringNoSeconds
+
+formatUTCTimeHiRes :: UTCTime -> T.Text
+formatUTCTimeHiRes = T.pack . formatUTCTimeHiRes'
+
+formatUTCTimeHiRes' :: UTCTime -> String
+formatUTCTimeHiRes' = formatTime defaultTimeLocale timeFormatStringHiRes
+
+formatDay :: Day -> T.Text
+formatDay = T.pack . formatDay'
+
+formatDay' :: Day -> String
+formatDay' = formatTime defaultTimeLocale dayFormatString
 
 diffTime :: UTCTime -> UTCTime -> TimeSpan
 diffTime t1 t2 = nominalDiffTimeSpan (diffUTCTime t1 t2)

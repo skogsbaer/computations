@@ -57,6 +57,7 @@ library
       Control.IncComps.FlowImpls.FileSrc
       Control.IncComps.FlowImpls.HashMapFlow
       Control.IncComps.FlowImpls.IOSink
+      Control.IncComps.FlowImpls.SqliteSrc
       Control.IncComps.FlowImpls.TimeSrc
       Control.IncComps.Utils.Ansi
       Control.IncComps.Utils.Clock
@@ -70,6 +71,7 @@ library
       Control.IncComps.Utils.MultiMap
       Control.IncComps.Utils.MultiSet
       Control.IncComps.Utils.SourceLocation
+      Control.IncComps.Utils.SqliteUtils
       Control.IncComps.Utils.StrictList
       Control.IncComps.Utils.TimeSpan
       Control.IncComps.Utils.TimeUtils
@@ -105,6 +107,7 @@ library
   build-depends:
       HTF
     , QuickCheck
+    , aeson
     , async
     , base >=4.7 && <5
     , base16-bytestring
@@ -112,6 +115,7 @@ library
     , cereal
     , cereal-text
     , containers
+    , direct-sqlite
     , directory
     , exceptions
     , filepath
@@ -122,6 +126,7 @@ library
     , monad-control
     , mtl
     , psqueues
+    , random
     , resourcet
     , safe
     , stm
@@ -142,9 +147,10 @@ executable incremental-computations-exe
       Control.IncComps.Demos.DirSync.Tests
       Control.IncComps.Demos.Hospital.CompDefs
       Control.IncComps.Demos.Hospital.Config
-      Control.IncComps.Demos.Hospital.PatEventSrc
+      Control.IncComps.Demos.Hospital.MDoc
       Control.IncComps.Demos.Hospital.PatTypes
       Control.IncComps.Demos.Main
+      Control.IncComps.Demos.Tests
       Paths_incremental_computations
   hs-source-dirs:
       app
@@ -173,6 +179,7 @@ executable incremental-computations-exe
   build-depends:
       HTF
     , QuickCheck
+    , aeson
     , async
     , base >=4.7 && <5
     , base16-bytestring
@@ -180,6 +187,7 @@ executable incremental-computations-exe
     , cereal
     , cereal-text
     , containers
+    , direct-sqlite
     , directory
     , exceptions
     , filepath
@@ -192,6 +200,7 @@ executable incremental-computations-exe
     , mtl
     , optparse-applicative
     , psqueues
+    , random
     , resourcet
     , safe
     , stm
@@ -237,6 +246,7 @@ test-suite incremental-computations-test
   build-depends:
       HTF
     , QuickCheck
+    , aeson
     , async
     , base >=4.7 && <5
     , base16-bytestring
@@ -244,6 +254,7 @@ test-suite incremental-computations-test
     , cereal
     , cereal-text
     , containers
+    , direct-sqlite
     , directory
     , exceptions
     , filepath
@@ -255,6 +266,7 @@ test-suite incremental-computations-test
     , monad-control
     , mtl
     , psqueues
+    , random
     , resourcet
     , safe
     , stm

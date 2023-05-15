@@ -121,7 +121,7 @@ doLog level stack msg = liftIO $ do
   enabledLevel <- readIORef logLevel
   when (level >= enabledLevel) $ do
     t <- getCurrentTime
-    let ts = take 23 (formatUTCTimeHiRes t) -- only millis
+    let ts = take 23 (formatUTCTimeHiRes' t) -- only millis
         loc = callerSrcLoc stack
         file = srcLocFile loc
         line = srcLocStartLine loc

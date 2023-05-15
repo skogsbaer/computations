@@ -23,7 +23,7 @@ import Control.IncComps.Utils.FileWatch
 import Control.IncComps.Utils.IOUtils
 import Control.IncComps.Utils.Logging
 import Control.IncComps.Utils.TimeSpan
-import Control.IncComps.Utils.TimeUtils (formatUTCTimeHiRes)
+import Control.IncComps.Utils.TimeUtils
 import Control.IncComps.Utils.Types
 
 ----------------------------------------
@@ -215,8 +215,8 @@ test_getNotificationForChangedModTime =
   assertBefore t1 t2 = do
     assertBoolVerbose
       ( "Timestamp "
-          ++ formatUTCTimeHiRes (posixSecondsToUTCTime t1)
+          ++ formatUTCTimeHiRes' (posixSecondsToUTCTime t1)
           ++ " is not before timestamp "
-          ++ formatUTCTimeHiRes (posixSecondsToUTCTime t2)
+          ++ formatUTCTimeHiRes' (posixSecondsToUTCTime t2)
       )
       (t1 < t2)

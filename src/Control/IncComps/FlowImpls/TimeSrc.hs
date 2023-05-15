@@ -16,9 +16,9 @@ module Control.IncComps.FlowImpls.TimeSrc (
 ----------------------------------------
 -- LOCAL
 ----------------------------------------
-import Control.IncComps.CompEngine.Types
-import Control.IncComps.CompEngine.Core
+
 import Control.IncComps.CompEngine.CompSrc
+import Control.IncComps.CompEngine.Types
 import Control.IncComps.Utils.Clock
 import Control.IncComps.Utils.ConcUtils
 import Control.IncComps.Utils.TimeSpan
@@ -40,10 +40,9 @@ import Data.Hashable
 import qualified Data.LargeHashable as LH
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
+import Data.Proxy
 import Data.Time.Clock
 import Test.Framework
-import Data.Proxy
-import qualified Data.Text as T
 
 data TimeSrcReq a where
   GetTime :: TimeIntervalType -> TimeSrcReq UTCTime

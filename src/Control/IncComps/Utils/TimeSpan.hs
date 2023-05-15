@@ -35,9 +35,10 @@ module Control.IncComps.Utils.TimeSpan (
 ----------------------------------------
 -- EXTERNAL
 ----------------------------------------
-import Data.Time.Clock
+
 import Data.Hashable
 import Data.LargeHashable
+import Data.Time.Clock
 import GHC.Generics (Generic)
 
 -- | Represents a time span with microsecond resolution.

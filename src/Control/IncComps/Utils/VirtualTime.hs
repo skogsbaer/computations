@@ -37,7 +37,7 @@ newtype VirtualTime = VirtualTime
 initVirtualTime :: UTCTime -> IO VirtualTime
 initVirtualTime t0 =
   do
-    logDebug ("Initialized virtual time with " ++ formatUTCTime t0)
+    logDebug ("Initialized virtual time with " ++ formatUTCTime' t0)
     VirtualTime <$> newTVarIO t0
 
 sleepVirtualTimeSpan :: VirtualTime -> TimeSpan -> IO ()
@@ -45,14 +45,14 @@ sleepVirtualTimeSpan vt@(VirtualTime var) ts =
   do
     t0 <- readTVarIO var
     let tWakeup = t0 `addTime` ts
-    logDebug ("VirtualTime is " ++ formatUTCTime t0 ++ ", sleeping for " ++ show ts)
+    logDebug ("VirtualTime is " ++ formatUTCTime' t0 ++ ", sleeping for " ++ show ts)
     sleepUntilVirtualTime vt tWakeup
 
 sleepUntilVirtualTime :: VirtualTime -> UTCTime -> IO ()
 sleepUntilVirtualTime (VirtualTime var) tWakeup =
   do
     logDebug
-      ("Waiting until virtual time proceeds to (at least) " ++ formatUTCTime tWakeup)
+      ("Waiting until virtual time proceeds to (at least) " ++ formatUTCTime' tWakeup)
     tCur <-
       atomically $
         do
@@ -60,7 +60,7 @@ sleepUntilVirtualTime (VirtualTime var) tWakeup =
           if tCur >= tWakeup
             then return tCur
             else retry
-    logDebug ("Done sleeping until " ++ formatUTCTime tCur)
+    logDebug ("Done sleeping until " ++ formatUTCTime' tCur)
 
 virtualClock :: VirtualTime -> Clock
 virtualClock vt@(VirtualTime var) =
@@ -105,7 +105,7 @@ timeoutInVirtualTime vt@(VirtualTime var) ts action =
             ( "Timeout after "
                 ++ show ts
                 ++ ", tCancetime="
-                ++ formatUTCTime tCancelTime
+                ++ formatUTCTime' tCancelTime
             )
           result <- fmap snd (waitAnyCancel [run, sleep])
           logDebug (if isNothing result then "Timeout of action" else "No timeout of action")

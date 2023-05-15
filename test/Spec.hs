@@ -15,9 +15,9 @@ import {-@ HTF_TESTS @-} Control.IncComps.CompEngine.Tests.TestRun
 import {-@ HTF_TESTS @-} Control.IncComps.CompEngine.Tests.TestStateIf
 import {-@ HTF_TESTS @-} Control.IncComps.CompEngine.Utils.OutputsMap
 import {-@ HTF_TESTS @-} Control.IncComps.CompEngine.Utils.PriorityAgingQueue
-import {-@ HTF_TESTS @-} Control.IncComps.Demos.DirSync.Tests
 import {-@ HTF_TESTS @-} Control.IncComps.FlowImpls.FileSink
 import {-@ HTF_TESTS @-} Control.IncComps.FlowImpls.FileSrc
+import {-@ HTF_TESTS @-} Control.IncComps.FlowImpls.SqliteSrc
 import {-@ HTF_TESTS @-} Control.IncComps.FlowImpls.TimeSrc
 import {-@ HTF_TESTS @-} Control.IncComps.Utils.DataSize
 import {-@ HTF_TESTS @-} Control.IncComps.Utils.Fail
