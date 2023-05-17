@@ -1,7 +1,9 @@
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 module Control.IncComps.Demos.Hospital.CompDefs (
-  defineComps, withCompFlows
+  HospitalPaths (..),
+  defineComps,
+  withCompFlows,
 ) where
 
 ----------------------------------------
@@ -125,7 +127,7 @@ admissionDateTooFarInTheFuture now ts pat =
 visiblePatsCompDef
   :: TimeIntervalType -> Comp () Config -> Comp () (Option PatMsgKey :!: PatMap) -> CompDef () PatMap
 visiblePatsCompDef interval configC activePatsC =
-  mkComp "activePatsComp" inMemoryLHCaching $ \() ->
+  mkComp "visiblePatsComp" inMemoryLHCaching $ \() ->
     do
       (_ :!: patMap) <- evalCompOrFail activePatsC ()
       now <- compGetTime interval
@@ -184,6 +186,7 @@ overviewCompDef :: Comp () PatMap -> Comp () PatSet -> Comp PatId URL -> CompDef
 overviewCompDef patMapC recentPatsC patC =
   mkComp "overviewComp" onlyCacheLHCaching $ \() ->
     do
+      compSinkReq jsonFileSinkId (MakeDirs ".") -- create the root directory to avoid being deleted
       pm <- evalCompOrFail patMapC ()
       recentPats <- evalCompOrFail recentPatsC ()
       sectAll <- renderSection "All patients" (HashMap.elems pm)
@@ -249,7 +252,7 @@ detailsCompDef getPatC getPatNotesC =
                     SL.fromList
                       [ textItem ("ID: " <> formatPatId (p_patId pat))
                       , textItem ("Name: " <> formattedName)
-                      , textItem ("Date of birth: " <> formatDay (p_birtdate pat))
+                      , textItem ("Date of birth: " <> formatDay (p_birthdate pat))
                       , textItem ("Sex: " <> formatSex (p_sex pat))
                       , textItem ("Admission: " <> formatUTCTimeNoSeconds (p_admissionDateTime pat))
                       , textItem
@@ -285,12 +288,6 @@ readConfigFile p = compSrcReq configFileSrcId (ReadFile p)
 writeJsonFile :: FilePath -> BS.ByteString -> CompM ()
 writeJsonFile p bs = compSinkReq jsonFileSinkId (WriteFile p bs)
 
-data CompConfig = CompConfig
-  { cc_outDir :: FilePath
-  , cc_patDb :: FilePath
-  , cc_patNotesDb :: FilePath
-  }
-
 defineComps :: TimeIntervalType -> CompDefM (Comp () ())
 defineComps timeUpdateInterval = do
   configC <- defineComp getConfigCompDef
@@ -303,27 +300,36 @@ defineComps timeUpdateInterval = do
   overviewC <- defineComp (overviewCompDef visiblePatsC recentPatsC detailsC)
   pure overviewC
 
-regSrc :: CompSrc s => CompFlowRegistry -> IO a -> s -> IO a
-regSrc reg action src = do
-  registerCompSrc reg src
-  action
+data HospitalPaths = HospitalPaths
+  { hp_outDir :: FilePath
+  , hp_patDb :: FilePath
+  , hp_patNotesDb :: FilePath
+  , hp_configDir :: FilePath
+  }
 
-withCompFlows :: CompConfig -> (CompFlowRegistry -> IO a) -> IO a
-withCompFlows cc action = do
-  setupPatDb (cc_patDb cc)
-  setupPatNotesDb (cc_patNotesDb cc)
-  reg <- newCompFlowRegistry
-  withFileSrc (defaultFileSrcConfig (instTextFromTypedCompSrcId configFileSrcId)) $ regSrc reg $
-    withSqliteSrc patMsgsSrcCfg $ regSrc reg $
-      withSqliteSrc patNotesSrcCfg $ regSrc reg $
-        withDefaultTimeSrc $ regSrc reg $ do
-          fileSink <- makeFileSink (instTextFromTypedCompSinkId jsonFileSinkId) (cc_outDir cc)
-          registerCompSink reg fileSink
-          registerCompSink reg ioSink
-          action reg
+withCompFlows :: HospitalPaths -> CompFlowRegistry -> IO a -> IO a
+withCompFlows paths reg action = do
+  setupPatDb (hp_patDb paths)
+  setupPatNotesDb (hp_patNotesDb paths)
+  withFileSrc cfgSrcCfg $
+    regSrc reg $
+      withSqliteSrc patMsgsSrcCfg $
+        regSrc reg $
+          withSqliteSrc patNotesSrcCfg $
+            regSrc reg $
+              withDefaultTimeSrc $
+                regSrc reg $ do
+                  fileSink <- makeFileSink (instTextFromTypedCompSinkId jsonFileSinkId) (hp_outDir paths)
+                  registerCompSink reg fileSink
+                  registerCompSink reg ioSink
+                  action
  where
   dbPollInterval = milliseconds 100
+  cfgSrcCfg =
+    (defaultFileSrcConfig (instTextFromTypedCompSrcId configFileSrcId))
+      { fcsc_rootDir = Some (hp_configDir paths)
+      }
   patMsgsSrcCfg =
-    patSqliteSrcCfg (instanceIdFromTypedCompSrcId patMsgsSrcId) (cc_patDb cc) dbPollInterval
+    patSqliteSrcCfg (instanceIdFromTypedCompSrcId patMsgsSrcId) (hp_patDb paths) dbPollInterval
   patNotesSrcCfg =
-    patSqliteSrcCfg (instanceIdFromTypedCompSrcId patNotesSrcId) (cc_patNotesDb cc) dbPollInterval
+    patNotesSqliteSrcCfg (instanceIdFromTypedCompSrcId patNotesSrcId) (hp_patNotesDb paths) dbPollInterval

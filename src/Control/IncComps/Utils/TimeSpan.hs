@@ -28,12 +28,16 @@ module Control.IncComps.Utils.TimeSpan (
   asHours,
   asDays,
   diffTimeSpan,
+  plusTimeSpan,
+  multiplyTimeSpan,
   htf_thisModulesTests
 ) where
 
 ----------------------------------------
 -- LOCAL
 ----------------------------------------
+import Control.IncComps.Utils.Parser
+import Control.IncComps.Utils.Types
 
 ----------------------------------------
 -- EXTERNAL
@@ -92,10 +96,10 @@ test_showTimeSpan =
     do assertEqual "1ms1us" (show $ TimeSpan 1001)
        assertEqual "1days1us" (show $ days 1 `plusTimeSpan` microseconds 1)
 
-timeSpanP :: P.Parser TimeSpan
+timeSpanP :: Parser TimeSpan
 timeSpanP =
     do spaceP
-       firstTime <- join $ parseAsMs <$> intP <*> P.many P.letterChar
+       firstTime <- join $ parseAsMs <$> integerP <*> P.many P.letterChar
        otherTimes <-
            do otherUs <- P.many $ (,) <$> L.decimal <*> P.many P.letterChar
               sum <$> mapM (Prelude.uncurry parseAsMs) otherUs
@@ -104,19 +108,21 @@ timeSpanP =
       with initTime rest =
           let f = if initTime < 0 then (-) else (+)
           in initTime `f` rest
-      parseAsMs num = fmap toInteger . \case
+      parseAsMs :: Integer -> String -> Parser Integer
+      parseAsMs num = \case
           "us" -> return num
           "ms" -> return $ 1000 * num
-          "s" -> return $ 1000^2 * num
+          "s" -> return $ 1000^two * num
           "m" -> return $ toMin num
           "min" -> return $ toMin num
-          "h" -> return $ 1000^2*60^2*num
+          "h" -> return $ 1000^two*60^two*num
           "d" -> return $ toDays num
           "days" -> return $ toDays num
           u ->
               fail ("Got number " ++ show num ++ " with invalid unit: " ++ u)
-      toMin num = 1000^2*60 * num
-      toDays num = 1000^2*60^2*24 * num
+      toMin num = 1000^two*60 * num
+      toDays num = 1000^two*60^two*24 * num
+      two = 2::Integer
 
 test_timeSpanP :: IO ()
 test_timeSpanP =
@@ -137,13 +143,13 @@ test_timeSpanP =
 
 prop_timeSpanP :: TimeSpan -> Bool
 prop_timeSpanP f =
-    parseM timeSpanP "" (T.showText f) == Ok f
+    parseM timeSpanP "" (showText f) == Ok f
 
 instance Read TimeSpan where
     readsPrec _ = parserToReadsPrec timeSpanP
 
-prop_readShow :: TimeSpan -> Property
-prop_readShow = mkReadShowProp
+prop_readShow :: TimeSpan -> Bool
+prop_readShow ts = ts == read (show ts)
 
 zeroTime :: TimeSpan
 zeroTime = TimeSpan 0
@@ -222,3 +228,9 @@ asDays (TimeSpan t) = (fromIntegral t) / (1000000 * 60 * 60 * 24)
 
 diffTimeSpan :: TimeSpan -> TimeSpan -> TimeSpan
 diffTimeSpan (TimeSpan t1) (TimeSpan t0) = TimeSpan (t1 - t0)
+
+plusTimeSpan :: TimeSpan -> TimeSpan -> TimeSpan
+plusTimeSpan (TimeSpan t1) (TimeSpan t0) = TimeSpan (t1 + t0)
+
+multiplyTimeSpan :: Real a => a -> TimeSpan -> TimeSpan
+multiplyTimeSpan x (TimeSpan t) = TimeSpan . round $ toRational x * toRational t

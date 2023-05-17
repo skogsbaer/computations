@@ -14,7 +14,7 @@ module Control.IncComps.Utils.TimeUtils (
   formatDay,
   formatDay',
   diffTime,
-  addTime,
+  addTimeSpan,
 ) where
 
 ----------------------------------------
@@ -109,5 +109,5 @@ formatDay' = formatTime defaultTimeLocale dayFormatString
 diffTime :: UTCTime -> UTCTime -> TimeSpan
 diffTime t1 t2 = nominalDiffTimeSpan (diffUTCTime t1 t2)
 
-addTime :: UTCTime -> TimeSpan -> UTCTime
-addTime t ts = asNominalDiffTime ts `addUTCTime` t
+addTimeSpan :: UTCTime -> TimeSpan -> UTCTime
+addTimeSpan t ts = asNominalDiffTime ts `addUTCTime` t

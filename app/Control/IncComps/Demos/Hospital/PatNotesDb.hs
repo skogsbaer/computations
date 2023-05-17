@@ -2,8 +2,10 @@
 
 module Control.IncComps.Demos.Hospital.PatNotesDb (
   setupPatNotesDb,
+  withPatNotesDb,
   patNotesSqliteSrcCfg,
   patNotes,
+  insertPatNote
 ) where
 
 ----------------------------------------
@@ -15,31 +17,29 @@ import Control.IncComps.FlowImpls.SqliteSrc
 import qualified Control.IncComps.Utils.SqliteUtils as Sqlite
 import Control.IncComps.Utils.TimeSpan
 import Control.IncComps.Utils.TimeUtils
-import Control.IncComps.Utils.Types
 
 ----------------------------------------
 -- EXTERNAL
 ----------------------------------------
 
-import qualified Data.Aeson as J
-import qualified Data.ByteString.Lazy as BSL
 import Data.HashSet (HashSet)
 import qualified Data.HashSet as HashSet
-import Data.Hashable
-import Data.Int
-import Data.LargeHashable
 import qualified Data.Text as T
 
 setupPatNotesDb :: FilePath -> IO ()
-setupPatNotesDb path = do
+setupPatNotesDb path = withPatNotesDb path (\_ -> pure ())
+
+withPatNotesDb :: FilePath -> (Sqlite.Database -> IO a) -> IO a
+withPatNotesDb path action =
   Sqlite.withSqliteDb (T.pack path) $ \db -> do
     Sqlite.exec db $
       "CREATE TABLE IF NOT EXISTS pat_notes ("
-        <> "  key INTEGER PRIMARY KEY AUTOINCREMENT"
+        <> "  key INTEGER PRIMARY KEY AUTOINCREMENT,"
         <> "  pat_id TEXT NOT NULL,"
         <> "  time TEXT NOT NULL,"
         <> "  text TEXT NOT NULL"
         <> ");"
+    action db
 
 patNotesSqliteSrcCfg :: CompSrcInstanceId -> FilePath -> TimeSpan -> SqliteSrcCfg
 patNotesSqliteSrcCfg ident path ts =
@@ -77,3 +77,12 @@ patNotes srcId (PatId patId) = do
   res <- compSrcReq srcId (AllData (RowFilter (Sqlite.SQLText patId)))
   l <- mapM rowToPatNote res
   pure (HashSet.fromList l)
+
+insertPatNote :: Sqlite.Database -> PatNote -> IO ()
+insertPatNote db note = do
+  let sql = "INSERT INTO pat_notes (pat_id, time, text) VALUES (:id, :time, :text)"
+  Sqlite.withStatement db sql $ \stmt ->
+    Sqlite.insert stmt
+      [(":id", Sqlite.SQLText (unPatId (pn_patId note))),
+       (":time", Sqlite.SQLText (formatUTCTime (pn_time note))),
+       (":text", Sqlite.SQLText (pn_text note))]

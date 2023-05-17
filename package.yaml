@@ -28,6 +28,7 @@ dependencies:
   - containers
   - directory
   - exceptions
+  - extra
   - filepath
   - ghc-prim
   - hashable
@@ -37,6 +38,7 @@ dependencies:
   - monad-control
   - mtl
   - psqueues
+  - quickcheck-instances
   - random
   - resourcet
   - safe

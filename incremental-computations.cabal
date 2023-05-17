@@ -36,6 +36,7 @@ library
       Control.IncComps.CompEngine.CompSink
       Control.IncComps.CompEngine.CompSrc
       Control.IncComps.CompEngine.Core
+      Control.IncComps.CompEngine.Driver
       Control.IncComps.CompEngine.Impl
       Control.IncComps.CompEngine.Run
       Control.IncComps.CompEngine.SifCache
@@ -70,6 +71,7 @@ library
       Control.IncComps.Utils.Logging
       Control.IncComps.Utils.MultiMap
       Control.IncComps.Utils.MultiSet
+      Control.IncComps.Utils.Parser
       Control.IncComps.Utils.SourceLocation
       Control.IncComps.Utils.SqliteUtils
       Control.IncComps.Utils.StrictList
@@ -118,6 +120,7 @@ library
     , direct-sqlite
     , directory
     , exceptions
+    , extra
     , filepath
     , ghc-prim
     , hashable
@@ -127,6 +130,7 @@ library
     , monad-control
     , mtl
     , psqueues
+    , quickcheck-instances
     , random
     , resourcet
     , safe
@@ -148,10 +152,15 @@ executable incremental-computations-exe
       Control.IncComps.Demos.DirSync.Tests
       Control.IncComps.Demos.Hospital.CompDefs
       Control.IncComps.Demos.Hospital.Config
+      Control.IncComps.Demos.Hospital.FakeDiagnoses
+      Control.IncComps.Demos.Hospital.FakeNames
+      Control.IncComps.Demos.Hospital.FakeWords
+      Control.IncComps.Demos.Hospital.Main
       Control.IncComps.Demos.Hospital.MDoc
       Control.IncComps.Demos.Hospital.PatDb
       Control.IncComps.Demos.Hospital.PatNotesDb
       Control.IncComps.Demos.Hospital.PatTypes
+      Control.IncComps.Demos.Hospital.Simulation
       Control.IncComps.Demos.Main
       Control.IncComps.Demos.Tests
       Paths_incremental_computations
@@ -193,6 +202,7 @@ executable incremental-computations-exe
     , direct-sqlite
     , directory
     , exceptions
+    , extra
     , filepath
     , ghc-prim
     , hashable
@@ -204,6 +214,7 @@ executable incremental-computations-exe
     , mtl
     , optparse-applicative
     , psqueues
+    , quickcheck-instances
     , random
     , resourcet
     , safe
@@ -261,6 +272,7 @@ test-suite incremental-computations-test
     , direct-sqlite
     , directory
     , exceptions
+    , extra
     , filepath
     , ghc-prim
     , hashable
@@ -271,6 +283,7 @@ test-suite incremental-computations-test
     , monad-control
     , mtl
     , psqueues
+    , quickcheck-instances
     , random
     , resourcet
     , safe

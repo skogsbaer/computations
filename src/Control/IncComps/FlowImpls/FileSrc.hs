@@ -60,6 +60,7 @@ data FileSrcConfig = FileSrcConfig
   { fcsc_ident :: CompSrcInstanceId
   , fcsc_pollInterval :: TimeSpan
   , fcsc_clock :: Clock
+  , fcsc_rootDir :: Option FilePath
   }
 
 defaultFileSrcConfig :: T.Text -> FileSrcConfig
@@ -68,6 +69,7 @@ defaultFileSrcConfig i =
     { fcsc_ident = CompSrcInstanceId i
     , fcsc_pollInterval = milliseconds 100
     , fcsc_clock = realClock
+    , fcsc_rootDir = None
     }
 
 data FileSrc = FileSrc
@@ -125,8 +127,8 @@ executeImpl
   -> IO (HashSet FileDep, Fail a)
 executeImpl fcs req =
   case req of
-    ReadFile path -> doWork path BS.readFile
-    ListDir path -> doWork path $ \p -> do
+    ReadFile (qualify -> path) -> doWork path BS.readFile
+    ListDir (qualify -> path) -> doWork path $ \p -> do
       l <- listDirectory p
       l2 <- forM l $ \name ->
         do
@@ -134,16 +136,20 @@ executeImpl fcs req =
           pure (DirEntry name (fs_type s))
       pure (HashSet.fromList l2)
  where
-  doWork :: FilePath -> (FilePath -> IO a) -> IO (HashSet FileDep, Fail a)
-  doWork path getResult = do
-    canonP <- watchFile (fcs_fileWatch fcs) path
-    let action = do
-          res <- getResult path
-          status <- getFileStatus path
-          pure (Ok res, Some (fileVerFromStatus status))
-    (res, version) <- catch action $ \(e :: IOException) -> pure (Fail (show e), None)
-    let deps = HashSet.singleton (Dep (FileKey canonP) version)
-    pure (deps, res)
+   qualify p =
+     case fcsc_rootDir (fcs_config fcs) of
+       None -> p
+       Some d -> d </> p
+   doWork :: FilePath -> (FilePath -> IO a) -> IO (HashSet FileDep, Fail a)
+   doWork path getResult = do
+     canonP <- watchFile (fcs_fileWatch fcs) path
+     let action = do
+           res <- getResult path
+           status <- getFileStatus path
+           pure (Ok res, Some (fileVerFromStatus status))
+     (res, version) <- catch action $ \(e :: IOException) -> pure (Fail (show e), None)
+     let deps = HashSet.singleton (Dep (FileKey canonP) version)
+     pure (deps, res)
 
 unregisterImpl :: FileSrc -> HashSet FileKey -> IO ()
 unregisterImpl fcs keys = do
@@ -158,6 +164,7 @@ testConfig =
     { fcsc_ident = "TestFileSrc"
     , fcsc_clock = realClock
     , fcsc_pollInterval = milliseconds 10
+    , fcsc_rootDir = None
     }
 
 test_getNotificationForChangedModTime :: IO ()

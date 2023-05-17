@@ -1,17 +1,14 @@
 {-|
-Module      : Cpm.Util.Parser
-Description : Utilities for writing parser
-Copyright   : (c) 2017 Factis Research GmbH
-
 This module defines parser combinators for writing parsing for languages with
 a syntax close to Haskell's. The parsers defined in this module share the following
 convention with Megaparsec lexeme parsers:  every lexeme parser assumes no spaces
 before the lexeme and consumes all spaces after the lexeme.
 -}
 {-# OPTIONS_GHC -F -pgmF htfpp #-}
-module Cpm.Util.Parser
+module Control.IncComps.Utils.Parser
     ( stringLiteralP
     , intP
+    , integerP
     , boolP
     , floatP
     , optionP
@@ -44,20 +41,18 @@ module Cpm.Util.Parser
     , (<|>)
     , (<?>)
     , try
+    , join
     )
 where
 
 ----------------------------------------
 -- LOCAL
 ----------------------------------------
-import Cpm.Util.Fail
-import Cpm.Util.FilePath
-import Cpm.Util.Safe
-import qualified Cpm.Util.Option as O
-import qualified Cpm.Util.Text as T
+import Control.IncComps.Utils.Fail
+import Control.IncComps.Utils.Types hiding (option)
 
 ----------------------------------------
--- SITE-PACKAGES
+-- EXTERNAL
 ----------------------------------------
 import Test.Framework
 import Text.Megaparsec
@@ -65,15 +60,12 @@ import Text.Megaparsec.Char
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as B
 import qualified Text.Megaparsec.Char.Lexer as L
-
-----------------------------------------
--- STDLIB
-----------------------------------------
 import Control.Arrow
 import Control.Monad
 import Data.Char
 import Data.Void
-import GHC.Stack
+import qualified Data.Text as T
+import Test.QuickCheck.Instances.Text ()
 
 type Parser = Parsec Void T.Text
 
@@ -86,10 +78,10 @@ type HaskellParser a =
 functionApplicationPrecedence :: Int
 functionApplicationPrecedence = 10
 
-parseM :: HasCallStack => Parser a -> SFilePath -> T.Text -> Fail a
+parseM :: Parser a -> FilePath -> T.Text -> Fail a
 parseM parser filename value =
-    case parse (parser <* eof) (toFilePath filename) value of
-      Left err -> safeFail (errorBundlePretty err)
+    case parse (parser <* eof) filename value of
+      Left err -> fail (errorBundlePretty err)
       Right x -> return x
 
 parseM' :: Parser a -> String -> T.Text -> Fail (a, T.Text)
@@ -111,7 +103,7 @@ parseM' p fn str =
             }
         (s, mRes) = Text.Megaparsec.runParser' p initialState
     in case mRes of
-         Left e -> safeFail $ errorBundlePretty e
+         Left e -> fail $ errorBundlePretty e
          Right res -> return (res, stateInput s)
 
 parserToReadsPrec :: Parser a -> String -> [(a, String)]
@@ -136,8 +128,8 @@ spaceP :: Parser ()
 spaceP =
     L.space
         (void spaceChar)
-        (safeFail "no support for line comments")
-        (safeFail "no support for block comments")
+        (fail "no support for line comments")
+        (fail "no support for block comments")
 
 horizontalSpaceCharP :: Parser ()
 horizontalSpaceCharP =
@@ -178,14 +170,17 @@ test_stringLiteralP =
 
 prop_stringLiteralP :: T.Text -> Property
 prop_stringLiteralP xs =
-    case parse (stringLiteralP <* eof) "" (T.showText xs) of
+    case parse (stringLiteralP <* eof) "" (showText xs) of
       Left err ->
           counterexample (errorBundlePretty err) $ False
       Right ys -> xs === ys
 
+integerP :: Parser Integer
+integerP = L.signed space (lexemeP L.decimal)
+
 intP :: Parser Int
 intP =
-    do n <- L.signed space (lexemeP L.decimal)
+    do n <- integerP
        return (fromInteger n)
 
 test_intP :: IO ()
@@ -236,7 +231,7 @@ listP elemP =
 
 prop_listP :: [T.Text] -> Property
 prop_listP xs =
-    case parse (listP stringLiteralP <* eof) "" (T.showText xs) of
+    case parse (listP stringLiteralP <* eof) "" (showText xs) of
       Left err ->
           counterexample (errorBundlePretty err) $ False
       Right ys -> xs === ys
@@ -359,22 +354,22 @@ test_optional =
     where
       def = 0 :: Int
 
-optionP :: HaskellParser a -> HaskellParser (O.Option a)
+optionP :: HaskellParser a -> HaskellParser (Option a)
 optionP valueP enclosingPrec =
     noneP <|> (parensP' (enclosingPrec > functionApplicationPrecedence) (someP <|> noneP))
     where
-      noneP = constrP "None" *> pure O.None
+      noneP = constrP "None" *> pure None
       someP =
           do constrP "Some"
-             O.Some <$> (valueP $ functionApplicationPrecedence + 1)
+             Some <$> (valueP $ functionApplicationPrecedence + 1)
 
 test_option :: IO ()
 test_option =
-    do subAssert $ testParser "None" (optionP (const intP) 11) O.None
-       subAssert $ testParser "Some 1" (optionP (const intP) 10) (O.Some 1)
+    do subAssert $ testParser "None" (optionP (const intP) 11) None
+       subAssert $ testParser "Some 1" (optionP (const intP) 10) (Some 1)
        subAssert $ testParserFailure "Some b" (optionP (const intP) 10)
        subAssert $ testParserFailure "Some 1" (optionP (const intP) 11)
-       subAssert $ testParser "(Some 1)" (optionP (const intP) 11) (O.Some 1)
+       subAssert $ testParser "(Some 1)" (optionP (const intP) 11) (Some 1)
 
 parserFromMapping :: [(a, T.Text)] -> Parser a
 parserFromMapping mapping =

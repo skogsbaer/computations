@@ -12,10 +12,7 @@ import Control.IncComps.FlowImpls.CompLogging
 import Control.IncComps.FlowImpls.FileSink
 import Control.IncComps.FlowImpls.FileSrc
 import Control.IncComps.FlowImpls.IOSink
-import Control.IncComps.Utils.Fail
 import Control.IncComps.Utils.IOUtils
-import Control.IncComps.Utils.Logging
-import Control.IncComps.Utils.TimeSpan
 import Control.IncComps.Utils.Types
 
 ----------------------------------------
@@ -27,7 +24,6 @@ import Control.Monad
 import qualified Data.ByteString as BS
 import Data.HashSet (HashSet)
 import Data.Proxy
-import Data.Time.Clock
 import System.Directory
 import System.FilePath
 import Prelude hiding (readFile, writeFile)
@@ -78,65 +74,27 @@ dirSyncCompDef src fileComp dirComp = mkComp "dirSyncComp" inMemoryLHCaching $ \
                 ++ show t
             )
 
+withCompFlows :: FilePath -> CompFlowRegistry -> IO a -> IO a
+withCompFlows tgt reg action =
+  withFileSrc (defaultFileSrcConfig "fileSrc") $ regSrc reg $ do
+    fileSink <- makeFileSink "fileSink" tgt
+    registerCompSink reg fileSink
+    registerCompSink reg ioSink
+    action
+
+defineComps :: FilePath -> CompDefM (Comp FilePath ())
+defineComps src = do
+  fileComp <- defineComp (fileSyncCompDef src)
+  defineRecursiveComp (dirSyncCompDef src fileComp)
+
 syncDirs :: FilePath -> FilePath -> IO ()
 syncDirs src tgt =
   do
     runVar <- newTVarIO None
     syncDirs' runVar src tgt
 
-data RunStats = RunStats
-  { rs_run :: Int
-  , rs_hadChanges :: Bool
-  , rs_staleCaps :: Int
-  }
-
 syncDirs' :: TVar (Option RunStats) -> FilePath -> FilePath -> IO ()
-syncDirs' runVar src' tgt' =
-  do
-    src <- canonicalizePath src'
-    tgt <- canonicalizePath tgt'
-    reg <- newCompFlowRegistry
-    withStateIf $ \stateIf ->
-      withFileSrc (defaultFileSrcConfig "fileSrc") $ \fileSrc ->
-        do
-          fileSink <- makeFileSink "fileSink" tgt
-          registerCompSrc reg fileSrc
-          registerCompSink reg fileSink
-          registerCompSink reg ioSink
-          let ifs =
-                CompEngineIfs
-                  { ce_compFlowRegistry = reg
-                  , ce_stateIf = stateIf
-                  }
-              rifs =
-                RunCompEngineIf
-                  { rcif_shouldStartWithRun = shouldStartNextRun stateIf reg runVar
-                  , rcif_emptyChangesMode = Block
-                  , rcif_getTime = getCurrentTime
-                  , rcif_maxLoopRunTime = (seconds 10)
-                  , rcif_maxRunIterations = CompRunUnlimitedIterations
-                  , rcif_reportGarbage = garbageHandler reg
-                  }
-          comps <- rootComps src
-          runCompEngine ifs comps rifs ()
- where
-  runDeletes stateIf reg =
-    do
-      logNote ("Deleting leftovers from previous program run")
-      forAllSinks_ reg (deleteDeadOutputs stateIf)
-  shouldStartNextRun stateIf reg runVar nRun hadChanges nStaleCaps state =
-    do
-      when (nRun == 1) (runDeletes stateIf reg)
-      let !stats = RunStats{rs_run = nRun, rs_hadChanges = hadChanges, rs_staleCaps = nStaleCaps}
-      atomically $ writeTVar runVar (Some stats)
-      pure (startNextRun, state)
-  rootComps src = (failInM . fmap snd) $
-    runCompDefM $
-      do
-        c <- defineComps src
-        pure ([wrapCompAp (mkCompAp c ".")])
-  defineComps :: FilePath -> CompDefM (Comp FilePath ())
-  defineComps src =
-    do
-      fileComp <- defineComp (fileSyncCompDef src)
-      defineRecursiveComp (dirSyncCompDef src fileComp)
+syncDirs' runVar src' tgt' = do
+  src <- canonicalizePath src'
+  tgt <- canonicalizePath tgt'
+  compDriver runVar (withCompFlows tgt) (defineComps src) "."

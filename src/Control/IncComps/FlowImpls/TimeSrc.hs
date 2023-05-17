@@ -84,7 +84,7 @@ initTimeSrc ident clock = do
     unless (all (\ti -> newTimes ti == curTimes ti) [minBound .. maxBound]) $
       atomically (writeTVar timesVar newTimes)
     let now = newTimes TimeInterval1s
-    c_sleepUntil clock (now `addTime` seconds 1)
+    c_sleepUntil clock (now `addTimeSpan` seconds 1)
     loop timesVar newTimes
   getTruncatedTimes = do
     t <- c_currentTime clock
@@ -168,13 +168,13 @@ test_timeCompSrc =
 
         addVirtualTimeSpan vt (seconds 1)
         changes <- atomically $ compSrcWaitChanges dif
-        let t1 = addTime t0 (seconds 1)
+        let t1 = addTimeSpan t0 (seconds 1)
             expected = HashSet.singleton (Dep (TimeKey TimeInterval1s) (TimeVer t1))
         assertEqual expected changes
 
         addVirtualTimeSpan vt (seconds 1)
         changes <- atomically $ compSrcWaitChanges dif
-        let t2 = addTime t0 (seconds 2)
+        let t2 = addTimeSpan t0 (seconds 2)
             expected = HashSet.singleton (Dep (TimeKey TimeInterval1s) (TimeVer t2))
         assertEqual expected changes
  where

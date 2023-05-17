@@ -1,7 +1,9 @@
 module Control.IncComps.Demos.Hospital.PatTypes (
   PatId (..),
+  unPatId,
   Sex (..),
   Name (..),
+  arbitraryName,
   Pat (..),
   PatNote (..),
 ) where
@@ -10,6 +12,7 @@ module Control.IncComps.Demos.Hospital.PatTypes (
 -- LOCAL
 ----------------------------------------
 import Control.IncComps.Utils.Types
+import Control.IncComps.Demos.Hospital.FakeNames
 
 ----------------------------------------
 -- EXTERNAL
@@ -21,9 +24,13 @@ import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.Clock
 import GHC.Generics (Generic)
+import Test.QuickCheck
 
 newtype PatId = PatId T.Text
   deriving (Eq, Show, Hashable, LargeHashable)
+
+unPatId :: PatId -> T.Text
+unPatId (PatId t) = t
 
 instance ToJSON PatId where
   toJSON (PatId t) = toJSON t
@@ -39,6 +46,13 @@ instance LargeHashable Sex
 instance ToJSON Sex
 instance FromJSON Sex
 
+instance Arbitrary Sex where
+  arbitrary =
+    frequency [(20, pure SexMale),
+               (20, pure SexFemale),
+               (1, pure SexUnknown),
+               (1, pure (SexOther "neutr"))]
+
 data Name = Name
   { n_lastName :: T.Text
   , n_firstName :: T.Text
@@ -50,11 +64,28 @@ instance LargeHashable Name
 instance ToJSON Name
 instance FromJSON Name
 
+instance Arbitrary Name where
+  arbitrary = do
+    first <- elements firstNames
+    last <- elements lastNames
+    pure (Name last first)
+
+arbitraryName :: Sex -> Gen Name
+arbitraryName sex = do
+    let first =
+          case sex of
+            SexMale -> firstNamesMale
+            SexFemale -> firstNamesFemale
+            _ -> firstNames
+    first <- elements first
+    last <- elements lastNames
+    pure (Name last first)
+
 data Pat = Pat
   { p_patId :: PatId
   , p_admissionDateTime :: UTCTime
   , p_dischargeDateTime :: Option UTCTime
-  , p_birtdate :: Day
+  , p_birthdate :: Day
   , p_sex :: Sex
   , p_name :: Name
   , p_primaryDiagnose :: T.Text

@@ -4,8 +4,10 @@ module Control.IncComps.Demos.Hospital.PatDb (
   PatMsg (..),
   PatMsgKey (..),
   setupPatDb,
+  withPatDb,
   patSqliteSrcCfg,
   patMsgsSince,
+  insertPat
 ) where
 
 ----------------------------------------
@@ -30,14 +32,18 @@ import Data.LargeHashable
 import qualified Data.Text as T
 
 setupPatDb :: FilePath -> IO ()
-setupPatDb path = do
+setupPatDb path = withPatDb path (\_ -> pure ())
+
+withPatDb :: FilePath -> (Sqlite.Database -> IO a) -> IO a
+withPatDb path action =
   Sqlite.withSqliteDb (T.pack path) $ \db -> do
     Sqlite.exec db $
       "CREATE TABLE IF NOT EXISTS pat_msgs ("
-        <> "  key INTEGER PRIMARY KEY AUTOINCREMENT"
+        <> "  key INTEGER PRIMARY KEY AUTOINCREMENT,"
         <> "  pat_id TEXT NOT NULL,"
         <> "  msg BLOB NOT NULL"
         <> ");"
+    action db
 
 patSqliteSrcCfg :: CompSrcInstanceId -> FilePath -> TimeSpan -> SqliteSrcCfg
 patSqliteSrcCfg ident path ts =
@@ -81,3 +87,12 @@ patMsgsSince :: TypedCompSrcId SqliteSrc -> Option PatMsgKey -> CompM [PatMsg]
 patMsgsSince srcId mKey = do
   res <- compSrcReq srcId (NewRowsSince (fmap patMsgKeyToSQLData mKey))
   mapM rowToPatMsg res
+
+insertPat :: Sqlite.Database -> Pat -> IO ()
+insertPat db pat = do
+  let bs = BSL.toStrict (J.encode pat)
+      sql = "INSERT INTO pat_msgs (pat_id, msg) VALUES (:id, :msg)"
+  Sqlite.withStatement db sql $ \stmt ->
+    Sqlite.insert stmt
+      [(":id", Sqlite.SQLText (unPatId (p_patId pat))),
+       (":msg", Sqlite.SQLBlob bs)]

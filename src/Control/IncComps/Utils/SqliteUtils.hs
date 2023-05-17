@@ -6,9 +6,12 @@ module Control.IncComps.Utils.SqliteUtils (
   ColumnName,
   SQLRow,
   SQLData (..),
+  Sqlite.Database,
   columnNames,
   exec,
   query,
+  insert,
+  withStatement,
   retryIfBusy,
   getColumnValue,
   initSqliteDb,
@@ -137,6 +140,17 @@ query stmt bindings =
     Sqlite.bindNamed stmt bindings
     rows <- retryIfBusy "query" (collectRows stmt) `finally` (Sqlite.reset stmt >> Sqlite.clearBindings stmt)
     pure rows
+
+insert :: Sqlite.Statement -> [(T.Text, SQLData)] -> IO ()
+insert stmt bindings = do
+  res <- query stmt bindings
+  case res of
+    [] -> pure ()
+    _ -> fail ("unexpected result for insert: " ++ show res)
+
+withStatement :: Sqlite.Database -> T.Text -> (Sqlite.Statement -> IO a) -> IO a
+withStatement db sql action =
+  bracket (Sqlite.prepare db sql) Sqlite.finalize action
 
 getColumnValue :: MonadFail m => SQLRow -> ColumnName -> m SQLData
 getColumnValue row colName =

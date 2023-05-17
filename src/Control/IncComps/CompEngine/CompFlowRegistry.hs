@@ -188,7 +188,7 @@ allCompSrcChanges (CompFlowRegistry var) b =
   do
     reg <- readTVar var
     let srcs = rs_srcs reg
-    logDebugSTM ("Waiting for changes on " ++ show (Map.size srcs) ++ " sources")
+    logTraceSTM ("Waiting for changes on " ++ show (Map.size srcs) ++ " sources")
     let changesActions :: [STM (HashSet AnyCompSrcDep)]
         changesActions = map (\(AnyCompSrc src) -> getChanges src) (HashMap.elems srcs)
     -- wait for at least one change

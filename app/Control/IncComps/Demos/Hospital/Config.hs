@@ -16,8 +16,10 @@ import Control.IncComps.Utils.TimeSpan
 import Data.Aeson
 import Data.Maybe
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as BSL
 import Data.LargeHashable
 import GHC.Generics (Generic)
+import Safe
 
 data Config = Config
   { c_recentTimeSpan :: TimeSpan
@@ -43,9 +45,9 @@ defaultConfig =
 
 instance FromJSON Config where
     parseJSON = withObject "Config" $ \v -> do
-      recent <- v .:? "recentTime"
-      afterDischarge <- v .:? "afterDischarge"
-      beforeAdmission <- v .:? "beforeAdmission"
+      recent <- getTimeSpan v "recentTime"
+      afterDischarge <- getTimeSpan v "afterDischarge"
+      beforeAdmission <- getTimeSpan v "beforeAdmission"
       pure $ Config {
           c_recentTimeSpan =
              fromMaybe (c_recentTimeSpan defaultConfig) recent
@@ -54,6 +56,18 @@ instance FromJSON Config where
         , c_visibleBeforeAdmission =
             fromMaybe (c_visibleBeforeAdmission defaultConfig) beforeAdmission
         }
+      where
+        getTimeSpan v k = do
+          ms <- v .:? k
+          case ms of
+            Nothing -> pure Nothing
+            Just s ->
+              case readMay s of
+                Just ts -> pure $ Just (ts :: TimeSpan)
+                Nothing -> fail ("Invalid timespan: " ++ s)
 
 parseConfig :: BS.ByteString -> Fail Config
-parseConfig = undefined -- FIXME
+parseConfig bs =
+  case eitherDecode (BSL.fromStrict bs) of
+    Right cfg -> Ok cfg
+    Left err -> Fail ("Error parsing config: " ++ err)

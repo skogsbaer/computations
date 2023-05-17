@@ -44,7 +44,7 @@ sleepVirtualTimeSpan :: VirtualTime -> TimeSpan -> IO ()
 sleepVirtualTimeSpan vt@(VirtualTime var) ts =
   do
     t0 <- readTVarIO var
-    let tWakeup = t0 `addTime` ts
+    let tWakeup = t0 `addTimeSpan` ts
     logDebug ("VirtualTime is " ++ formatUTCTime' t0 ++ ", sleeping for " ++ show ts)
     sleepUntilVirtualTime vt tWakeup
 
@@ -77,7 +77,7 @@ getCurrentVirtualTime (VirtualTime var) = readTVarIO var
 
 addVirtualTimeSpan :: VirtualTime -> TimeSpan -> IO ()
 addVirtualTimeSpan vt ts =
-  modifyVirtualTime vt (`addTime` ts)
+  modifyVirtualTime vt (`addTimeSpan` ts)
 
 modifyVirtualTime :: VirtualTime -> (UTCTime -> UTCTime) -> IO ()
 modifyVirtualTime (VirtualTime var) f =
@@ -97,7 +97,7 @@ setVirtualTimeTo vt t =
 timeoutInVirtualTime :: VirtualTime -> TimeSpan -> IO a -> IO (Maybe a)
 timeoutInVirtualTime vt@(VirtualTime var) ts action =
   do
-    ((`addTime` ts) -> tCancelTime) <- readTVarIO var
+    ((`addTimeSpan` ts) -> tCancelTime) <- readTVarIO var
     withAsync (Just <$> action) $ \run ->
       withAsync (sleepAction tCancelTime) $ \sleep ->
         do

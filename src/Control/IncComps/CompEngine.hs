@@ -4,6 +4,7 @@ module Control.IncComps.CompEngine (
 
 import Control.IncComps.CompEngine.CacheBehaviors as X
 import Control.IncComps.CompEngine.CompDef as X
+import Control.IncComps.CompEngine.Driver as X
 import Control.IncComps.CompEngine.CompEval as X
 import Control.IncComps.CompEngine.CompFlow as X
 import Control.IncComps.CompEngine.CompFlowRegistry as X

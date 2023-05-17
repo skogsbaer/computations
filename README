@@ -1,0 +1,14 @@
+
+## Tests
+
+```
+stack test
+stack run -- test
+```
+
+## Demo: Hospital
+
+```
+stack run -- --log-level debug hospital-pipeline --config hospital-config/ --root output
+stack run -- --log-level debug hospital-simulation --root output
+```

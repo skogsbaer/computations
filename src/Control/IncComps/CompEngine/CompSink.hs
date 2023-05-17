@@ -77,7 +77,6 @@ class (Typeable s, IsCompFlowData (CompSinkOut s)) => CompSink s where
   compSinkInstanceId :: s -> CompSinkInstanceId
   compSinkExecute :: s -> CompSinkReq s a -> IO (CompSinkOuts s, Fail a)
   compSinkDeleteOutputs :: s -> CompSinkOuts s -> IO ()
-
   -- not all sinks support listing the existing outputs
   compSinkListExistingOutputs :: s -> Option (IO (CompSinkOuts s))
 
