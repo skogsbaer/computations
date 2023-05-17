@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -F -pgmF htfpp #-}
+
 module Control.IncComps.Utils.TimeSpan (
   TimeSpan,
   zeroTime,
@@ -26,6 +28,7 @@ module Control.IncComps.Utils.TimeSpan (
   asHours,
   asDays,
   diffTimeSpan,
+  htf_thisModulesTests
 ) where
 
 ----------------------------------------
@@ -35,11 +38,15 @@ module Control.IncComps.Utils.TimeSpan (
 ----------------------------------------
 -- EXTERNAL
 ----------------------------------------
-
+import qualified Text.Megaparsec as P
+import qualified Text.Megaparsec.Char as P
+import qualified Text.Megaparsec.Char.Lexer as L
+import Test.QuickCheck
 import Data.Hashable
 import Data.LargeHashable
 import Data.Time.Clock
 import GHC.Generics (Generic)
+import Test.Framework
 
 -- | Represents a time span with microsecond resolution.
 newtype TimeSpan = TimeSpan {unTimeSpan :: Integer}
@@ -47,6 +54,14 @@ newtype TimeSpan = TimeSpan {unTimeSpan :: Integer}
   deriving stock (Generic)
 
 instance LargeHashable TimeSpan
+
+instance Arbitrary TimeSpan where
+    arbitrary =
+        do us <- arbitrary
+           s <- arbitrary
+           h <- arbitrary
+           d <- arbitrary
+           return (microseconds us + seconds s + hours h + days d)
 
 instance Show TimeSpan where
   showsPrec _ (TimeSpan t)
@@ -71,6 +86,64 @@ instance Show TimeSpan where
     ds = t `div` (1000 ^ two * 60 ^ two * 24)
     two :: Integer
     two = 2
+
+test_showTimeSpan :: IO ()
+test_showTimeSpan =
+    do assertEqual "1ms1us" (show $ TimeSpan 1001)
+       assertEqual "1days1us" (show $ days 1 `plusTimeSpan` microseconds 1)
+
+timeSpanP :: P.Parser TimeSpan
+timeSpanP =
+    do spaceP
+       firstTime <- join $ parseAsMs <$> intP <*> P.many P.letterChar
+       otherTimes <-
+           do otherUs <- P.many $ (,) <$> L.decimal <*> P.many P.letterChar
+              sum <$> mapM (Prelude.uncurry parseAsMs) otherUs
+       return . TimeSpan $ firstTime `with` otherTimes
+    where
+      with initTime rest =
+          let f = if initTime < 0 then (-) else (+)
+          in initTime `f` rest
+      parseAsMs num = fmap toInteger . \case
+          "us" -> return num
+          "ms" -> return $ 1000 * num
+          "s" -> return $ 1000^2 * num
+          "m" -> return $ toMin num
+          "min" -> return $ toMin num
+          "h" -> return $ 1000^2*60^2*num
+          "d" -> return $ toDays num
+          "days" -> return $ toDays num
+          u ->
+              fail ("Got number " ++ show num ++ " with invalid unit: " ++ u)
+      toMin num = 1000^2*60 * num
+      toDays num = 1000^2*60^2*24 * num
+
+test_timeSpanP :: IO ()
+test_timeSpanP =
+    do assertEqual (Ok $ minutes 3) (parseM timeSpanP "" "3m")
+       assertEqual (Ok $ minutes 3) (parseM timeSpanP "" "3min")
+       assertEqual (Ok $ days (-1)) (parseM timeSpanP "" "-1days")
+       assertEqual (Ok $ days (-1)) (parseM timeSpanP "" "-1d")
+       assertEqual (Ok $ (days (-1), " ")) (parseM' timeSpanP "" " -1d ")
+       assertEqual (Ok $ days (-1) `plusTimeSpan` hours (-1)) (parseM timeSpanP "" "-1days1h")
+       assertEqual (Ok $ days 0) (parseM timeSpanP "" " 0us")
+       assertEqual (Ok $ longTime) (parseM timeSpanP "" "3days3h2s999ms998us")
+       assertBool $ isFail (parseM timeSpanP "" "-1days-1h")
+       assertBool $ isFail (parseM timeSpanP "" "-1days 1h")
+    where
+      longTime =
+          foldr plusTimeSpan (days 0)
+              [days 3, hours 3, seconds 2, milliseconds 999, microseconds 998]
+
+prop_timeSpanP :: TimeSpan -> Bool
+prop_timeSpanP f =
+    parseM timeSpanP "" (T.showText f) == Ok f
+
+instance Read TimeSpan where
+    readsPrec _ = parserToReadsPrec timeSpanP
+
+prop_readShow :: TimeSpan -> Property
+prop_readShow = mkReadShowProp
 
 zeroTime :: TimeSpan
 zeroTime = TimeSpan 0

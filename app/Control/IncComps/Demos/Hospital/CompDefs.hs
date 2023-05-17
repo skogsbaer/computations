@@ -1,14 +1,7 @@
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 module Control.IncComps.Demos.Hospital.CompDefs (
-  getConfigCompDef,
-  activePatsCompDef,
-  visiblePatsCompDef,
-  recentPatsCompDef,
-  patNotesCompDef,
-  overviewCompDef,
-  getPatCompDef,
-  detailsCompDef,
+  defineComps, withCompFlows
 ) where
 
 ----------------------------------------
@@ -17,10 +10,13 @@ module Control.IncComps.Demos.Hospital.CompDefs (
 import Control.IncComps.CompEngine
 import Control.IncComps.Demos.Hospital.Config
 import Control.IncComps.Demos.Hospital.MDoc
+import Control.IncComps.Demos.Hospital.PatDb
+import Control.IncComps.Demos.Hospital.PatNotesDb
 import Control.IncComps.Demos.Hospital.PatTypes
 import Control.IncComps.FlowImpls.CompLogging
 import Control.IncComps.FlowImpls.FileSink
 import Control.IncComps.FlowImpls.FileSrc
+import Control.IncComps.FlowImpls.IOSink
 import Control.IncComps.FlowImpls.SqliteSrc
 import Control.IncComps.FlowImpls.TimeSrc
 import Control.IncComps.Utils.Fail
@@ -42,8 +38,6 @@ import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HashMap
 import Data.HashSet (HashSet)
 import qualified Data.HashSet as HashSet
-import Data.Hashable
-import Data.LargeHashable
 import Data.List (foldl')
 import qualified Data.List as L
 import Data.Maybe
@@ -51,32 +45,6 @@ import qualified Data.Ord
 import Data.Proxy
 import qualified Data.Text as T
 import Data.Time.Clock
-
-configFileSrcId :: TypedCompSrcId FileSrc
-configFileSrcId = typedCompSrcId (Proxy @FileSrc) "configFileSrc"
-
-readConfigFile :: FilePath -> CompM BS.ByteString
-readConfigFile p = compSrcReq configFileSrcId (ReadFile p)
-
-jsonFileSinkId :: TypedCompSinkId FileSink
-jsonFileSinkId = typedCompSinkId (Proxy @FileSink) "jsonFileSink"
-
-writeJsonFile :: FilePath -> BS.ByteString -> CompM ()
-writeJsonFile p bs = compSinkReq jsonFileSinkId (WriteFile p bs)
-
-patEventSrcId :: TypedCompSrcId SqliteSrc
-patEventSrcId = typedCompSrcId (Proxy @SqliteSrc) "patEventSrc"
-
-newtype PatMsgKey = PatMsgKey SQLData
-  deriving (Show, Eq, Hashable, LargeHashable)
-
-data PatMsg = PatMsg
-  { pm_time :: PatMsgKey
-  , pm_pat :: Pat
-  }
-
-patMsgsSince :: Option PatMsgKey -> CompM [PatMsg]
-patMsgsSince _t = undefined -- FIXME -- compSrcReq patEventSrcId (PatMsgsSince t)
 
 type PatMap = HashMap PatId Pat
 type PatSet = HashSet Pat
@@ -130,13 +98,13 @@ activePatsCompDef :: TimeIntervalType -> CompDef () (Option PatMsgKey :!: PatMap
 activePatsCompDef interval =
   mkIncComp "activePatsComp" (None :!: HashMap.empty) $ \() acc@(mPatMsgKey :!: _) ->
     do
-      msgs <- patMsgsSince mPatMsgKey
+      msgs <- patMsgsSince patMsgsSrcId mPatMsgKey
       let (newPatMsgKey :!: newMap) = updatePats acc msgs
       now <- compGetTime interval
       pure (newPatMsgKey :!: removeDischarged now maxTimeToKeepAfterDischarge newMap)
  where
   updatePats :: (Option PatMsgKey :!: PatMap) -> [PatMsg] -> (Option PatMsgKey :!: PatMap)
-  updatePats acc msgs = foldl' (\(_ :!: m) msg -> (Some (pm_time msg) :!: updatePat m msg)) acc msgs
+  updatePats acc msgs = foldl' (\(_ :!: m) msg -> (Some (pm_key msg) :!: updatePat m msg)) acc msgs
   updatePat m msg =
     let pat = pm_pat msg
      in HashMap.insertWith (\new _ -> new) (p_patId pat) pat m
@@ -155,11 +123,11 @@ admissionDateTooFarInTheFuture now ts pat =
   p_admissionDateTime pat `diffTime` now > ts
 
 visiblePatsCompDef
-  :: TimeIntervalType -> Comp () Config -> Comp () (Option PatMsgKey, PatMap) -> CompDef () PatMap
+  :: TimeIntervalType -> Comp () Config -> Comp () (Option PatMsgKey :!: PatMap) -> CompDef () PatMap
 visiblePatsCompDef interval configC activePatsC =
   mkComp "activePatsComp" inMemoryLHCaching $ \() ->
     do
-      (_, patMap) <- evalCompOrFail activePatsC ()
+      (_ :!: patMap) <- evalCompOrFail activePatsC ()
       now <- compGetTime interval
       cfg <- evalCompOrFail configC ()
       pure (HashMap.filter (cond now cfg) patMap)
@@ -168,8 +136,8 @@ visiblePatsCompDef interval configC activePatsC =
     not (dischargeDateTooFarInThePast now (c_visibleAfterDischarge cfg) pat)
       && not (admissionDateTooFarInTheFuture now (c_visibleBeforeAdmission cfg) pat)
 
-recentPatsCompDef :: TimeIntervalType -> Comp () PatMap -> Comp () Config -> CompDef () PatSet
-recentPatsCompDef interval activePatsC configC =
+recentPatsCompDef :: TimeIntervalType -> Comp () Config -> Comp () PatMap -> CompDef () PatSet
+recentPatsCompDef interval configC activePatsC =
   mkComp "recentPatsComp" inMemoryLHCaching $ \() ->
     do
       cfg <- evalCompOrFail configC ()
@@ -182,9 +150,6 @@ recentPatsCompDef interval activePatsC configC =
      in isNone (p_dischargeDateTime pat)
           && delta > 0
           && delta <= c_recentTimeSpan cfg
-
-patNotesCompDef :: CompDef PatId (HashSet PatNote)
-patNotesCompDef = undefined -- get from source
 
 formatName :: Name -> T.Text
 formatName name = n_lastName name <> ", " <> n_firstName name
@@ -264,6 +229,11 @@ getPatCompDef patMapC =
         Just pat -> pure pat
         Nothing -> fail ("Unknown or invisible patient " ++ show patId)
 
+patNotesCompDef :: CompDef PatId (HashSet PatNote)
+patNotesCompDef =
+  mkComp "patNotesComp" inMemoryLHCaching $ \patId ->
+    patNotes patNotesSrcId patId
+
 detailsCompDef :: Comp PatId Pat -> Comp PatId (HashSet PatNote) -> CompDef PatId URL
 detailsCompDef getPatC getPatNotesC =
   mkComp "detailsComp" inMemoryLHCaching $ \patId ->
@@ -296,3 +266,64 @@ detailsCompDef getPatC getPatNotesC =
   formatNote note =
     let title = "Note " <> formatUTCTimeNoSeconds (pn_time note)
      in MSection (Some title) $ SL.singleton $ MContentText $ pn_text note
+
+configFileSrcId :: TypedCompSrcId FileSrc
+configFileSrcId = typedCompSrcId (Proxy @FileSrc) "configFileSrc"
+
+jsonFileSinkId :: TypedCompSinkId FileSink
+jsonFileSinkId = typedCompSinkId (Proxy @FileSink) "jsonFileSink"
+
+patMsgsSrcId :: TypedCompSrcId SqliteSrc
+patMsgsSrcId = typedCompSrcId (Proxy @SqliteSrc) "patMsgsSrc"
+
+patNotesSrcId :: TypedCompSrcId SqliteSrc
+patNotesSrcId = typedCompSrcId (Proxy @SqliteSrc) "patNotesSrc"
+
+readConfigFile :: FilePath -> CompM BS.ByteString
+readConfigFile p = compSrcReq configFileSrcId (ReadFile p)
+
+writeJsonFile :: FilePath -> BS.ByteString -> CompM ()
+writeJsonFile p bs = compSinkReq jsonFileSinkId (WriteFile p bs)
+
+data CompConfig = CompConfig
+  { cc_outDir :: FilePath
+  , cc_patDb :: FilePath
+  , cc_patNotesDb :: FilePath
+  }
+
+defineComps :: TimeIntervalType -> CompDefM (Comp () ())
+defineComps timeUpdateInterval = do
+  configC <- defineComp getConfigCompDef
+  activePatsC <- defineComp (activePatsCompDef timeUpdateInterval)
+  visiblePatsC <- defineComp (visiblePatsCompDef timeUpdateInterval configC activePatsC)
+  recentPatsC <- defineComp (recentPatsCompDef timeUpdateInterval configC visiblePatsC)
+  getPatC <- defineComp (getPatCompDef visiblePatsC)
+  patNotesC <- defineComp patNotesCompDef
+  detailsC <- defineComp (detailsCompDef getPatC patNotesC)
+  overviewC <- defineComp (overviewCompDef visiblePatsC recentPatsC detailsC)
+  pure overviewC
+
+regSrc :: CompSrc s => CompFlowRegistry -> IO a -> s -> IO a
+regSrc reg action src = do
+  registerCompSrc reg src
+  action
+
+withCompFlows :: CompConfig -> (CompFlowRegistry -> IO a) -> IO a
+withCompFlows cc action = do
+  setupPatDb (cc_patDb cc)
+  setupPatNotesDb (cc_patNotesDb cc)
+  reg <- newCompFlowRegistry
+  withFileSrc (defaultFileSrcConfig (instTextFromTypedCompSrcId configFileSrcId)) $ regSrc reg $
+    withSqliteSrc patMsgsSrcCfg $ regSrc reg $
+      withSqliteSrc patNotesSrcCfg $ regSrc reg $
+        withDefaultTimeSrc $ regSrc reg $ do
+          fileSink <- makeFileSink (instTextFromTypedCompSinkId jsonFileSinkId) (cc_outDir cc)
+          registerCompSink reg fileSink
+          registerCompSink reg ioSink
+          action reg
+ where
+  dbPollInterval = milliseconds 100
+  patMsgsSrcCfg =
+    patSqliteSrcCfg (instanceIdFromTypedCompSrcId patMsgsSrcId) (cc_patDb cc) dbPollInterval
+  patNotesSrcCfg =
+    patSqliteSrcCfg (instanceIdFromTypedCompSrcId patNotesSrcId) (cc_patNotesDb cc) dbPollInterval

@@ -14,7 +14,7 @@ import Control.IncComps.Utils.Types
 ----------------------------------------
 -- EXTERNAL
 ----------------------------------------
-
+import Data.Aeson
 import Data.Hashable
 import Data.LargeHashable
 import qualified Data.Text as T
@@ -25,11 +25,19 @@ import GHC.Generics (Generic)
 newtype PatId = PatId T.Text
   deriving (Eq, Show, Hashable, LargeHashable)
 
+instance ToJSON PatId where
+  toJSON (PatId t) = toJSON t
+
+instance FromJSON PatId where
+  parseJSON v = PatId <$> parseJSON v
+
 data Sex = SexMale | SexFemale | SexOther T.Text | SexUnknown
   deriving (Eq, Show, Generic)
 
 instance Hashable Sex
 instance LargeHashable Sex
+instance ToJSON Sex
+instance FromJSON Sex
 
 data Name = Name
   { n_lastName :: T.Text
@@ -39,6 +47,8 @@ data Name = Name
 
 instance Hashable Name
 instance LargeHashable Name
+instance ToJSON Name
+instance FromJSON Name
 
 data Pat = Pat
   { p_patId :: PatId
@@ -53,6 +63,8 @@ data Pat = Pat
 
 instance Hashable Pat
 instance LargeHashable Pat
+instance ToJSON Pat
+instance FromJSON Pat
 
 data PatNote = PatNote
   { pn_patId :: PatId

@@ -103,7 +103,7 @@ library
       TypeApplications
       TypeOperators
       ViewPatterns
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wno-name-shadowing -Wpartial-fields -Wredundant-constraints -Werror
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wno-name-shadowing -Wpartial-fields -Wredundant-constraints
   build-depends:
       HTF
     , QuickCheck
@@ -123,6 +123,7 @@ library
     , hashable
     , hslogger
     , large-hashable
+    , megaparsec
     , monad-control
     , mtl
     , psqueues
@@ -148,6 +149,8 @@ executable incremental-computations-exe
       Control.IncComps.Demos.Hospital.CompDefs
       Control.IncComps.Demos.Hospital.Config
       Control.IncComps.Demos.Hospital.MDoc
+      Control.IncComps.Demos.Hospital.PatDb
+      Control.IncComps.Demos.Hospital.PatNotesDb
       Control.IncComps.Demos.Hospital.PatTypes
       Control.IncComps.Demos.Main
       Control.IncComps.Demos.Tests
@@ -175,7 +178,7 @@ executable incremental-computations-exe
       TypeApplications
       TypeOperators
       ViewPatterns
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wno-name-shadowing -Wpartial-fields -Wredundant-constraints -Werror -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wno-name-shadowing -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       HTF
     , QuickCheck
@@ -196,6 +199,7 @@ executable incremental-computations-exe
     , hslogger
     , incremental-computations
     , large-hashable
+    , megaparsec
     , monad-control
     , mtl
     , optparse-applicative
@@ -242,7 +246,7 @@ test-suite incremental-computations-test
       TypeApplications
       TypeOperators
       ViewPatterns
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wno-name-shadowing -Wpartial-fields -Wredundant-constraints -Werror -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wno-name-shadowing -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       HTF
     , QuickCheck
@@ -263,6 +267,7 @@ test-suite incremental-computations-test
     , hslogger
     , incremental-computations
     , large-hashable
+    , megaparsec
     , monad-control
     , mtl
     , psqueues

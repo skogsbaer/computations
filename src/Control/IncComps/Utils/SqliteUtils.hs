@@ -5,7 +5,9 @@ module Control.IncComps.Utils.SqliteUtils (
   TableName,
   ColumnName,
   SQLRow,
+  SQLData (..),
   columnNames,
+  exec,
   query,
   retryIfBusy,
   getColumnValue,
@@ -125,6 +127,10 @@ retryIfBusy what action = loop 0
       c_sleep realClock (milliseconds i)
   maxRetries = 50 :: Int
 
+exec :: Sqlite.Database -> T.Text -> IO ()
+exec db code =
+  retryIfBusy "exec" (Sqlite.exec db code)
+
 query :: Sqlite.Statement -> [(T.Text, SQLData)] -> IO [SQLRow]
 query stmt bindings =
   do
@@ -132,14 +138,13 @@ query stmt bindings =
     rows <- retryIfBusy "query" (collectRows stmt) `finally` (Sqlite.reset stmt >> Sqlite.clearBindings stmt)
     pure rows
 
-getColumnValue :: SQLRow -> ColumnName -> IO SQLData
+getColumnValue :: MonadFail m => SQLRow -> ColumnName -> m SQLData
 getColumnValue row colName =
   case L.lookup colName row of
     Nothing ->
       do
         let msg =
-              "SqliteSrc: row request does not contain column " ++ show colName
-        logWarn msg
+              "row request does not contain column " ++ show colName
         fail msg
     Just sqlData ->
       pure sqlData

@@ -13,7 +13,8 @@ import Control.IncComps.Utils.TimeSpan
 ----------------------------------------
 -- EXTERNAL
 ----------------------------------------
-
+import Data.Aeson
+import Data.Maybe
 import qualified Data.ByteString as BS
 import Data.LargeHashable
 import GHC.Generics (Generic)
@@ -39,6 +40,20 @@ defaultConfig =
     , c_visibleAfterDischarge = days 1
     , c_visibleBeforeAdmission = hours 1
     }
+
+instance FromJSON Config where
+    parseJSON = withObject "Config" $ \v -> do
+      recent <- v .:? "recentTime"
+      afterDischarge <- v .:? "afterDischarge"
+      beforeAdmission <- v .:? "beforeAdmission"
+      pure $ Config {
+          c_recentTimeSpan =
+             fromMaybe (c_recentTimeSpan defaultConfig) recent
+        , c_visibleAfterDischarge =
+            fromMaybe (c_visibleAfterDischarge defaultConfig) afterDischarge
+        , c_visibleBeforeAdmission =
+            fromMaybe (c_visibleBeforeAdmission defaultConfig) beforeAdmission
+        }
 
 parseConfig :: BS.ByteString -> Fail Config
 parseConfig = undefined -- FIXME

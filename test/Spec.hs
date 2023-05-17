@@ -25,6 +25,7 @@ import {-@ HTF_TESTS @-} Control.IncComps.Utils.FileWatch
 import {-@ HTF_TESTS @-} Control.IncComps.Utils.IOUtils
 import {-@ HTF_TESTS @-} Control.IncComps.Utils.MultiMap
 import {-@ HTF_TESTS @-} Control.IncComps.Utils.MultiSet
+import {-@ HTF_TESTS @-} Control.IncComps.Utils.TimeSpan
 
 main :: IO ()
 main = do

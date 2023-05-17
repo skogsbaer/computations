@@ -15,6 +15,8 @@ module Control.IncComps.CompEngine.CompSrc (
   TypedCompSrcId (..),
   compSrcId,
   typedCompSrcId,
+  instanceIdFromTypedCompSrcId,
+  instTextFromTypedCompSrcId,
   CompSrcInstanceId (..),
   AnyCompSrcDep,
   SomeCompSrcDep (..),
@@ -105,6 +107,12 @@ newtype TypedCompSrcId a = TypedCompSrcId {unTypedCompSrcId :: CompSrcId}
 instance Show (TypedCompSrcId a) where
   showsPrec p (TypedCompSrcId (CompSrcId (TypeId t) (CompSrcInstanceId i))) =
     showHelper2 p "TypedCompSrcId" t i
+
+instanceIdFromTypedCompSrcId :: TypedCompSrcId a -> CompSrcInstanceId
+instanceIdFromTypedCompSrcId = csi_instance . unTypedCompSrcId
+
+instTextFromTypedCompSrcId :: TypedCompSrcId a -> T.Text
+instTextFromTypedCompSrcId = unCompSrcInstanceId . instanceIdFromTypedCompSrcId
 
 compSrcId :: forall s. CompSrc s => s -> CompSrcId
 compSrcId s = unTypedCompSrcId (typedCompSrcId (Proxy @s) (compSrcInstanceId s))

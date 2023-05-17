@@ -12,6 +12,8 @@ module Control.IncComps.CompEngine.CompSink (
   TypedCompSinkId (..),
   typedCompSinkId,
   compSinkId,
+  instanceIdFromTypedCompSinkId,
+  instTextFromTypedCompSinkId,
   SomeCompSinkOuts (..),
   AnyCompSinkOuts,
   AnyCompSinkOutsMap (..),
@@ -106,6 +108,12 @@ typedCompSinkId :: CompSink s => Proxy s -> CompSinkInstanceId -> TypedCompSinkI
 typedCompSinkId p instId =
   let i = CompSinkId (identifyProxy p) instId
    in TypedCompSinkId i
+
+instanceIdFromTypedCompSinkId :: TypedCompSinkId a -> CompSinkInstanceId
+instanceIdFromTypedCompSinkId = csi_instance . unTypedCompSinkId
+
+instTextFromTypedCompSinkId :: TypedCompSinkId a -> T.Text
+instTextFromTypedCompSinkId = unCompSinkInstanceId . instanceIdFromTypedCompSinkId
 
 data AnyCompSink = forall s. CompSink s => AnyCompSink s
 

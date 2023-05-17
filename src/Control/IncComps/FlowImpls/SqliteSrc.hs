@@ -13,7 +13,7 @@ module Control.IncComps.FlowImpls.SqliteSrc (
   SqliteSrcReq (..),
   SqliteSrc,
   SqliteDep,
-  RowFilter,
+  RowFilter (..),
   SQLData,
   initSqliteSrc,
   closeSqliteSrc,
@@ -51,14 +51,14 @@ import Data.LargeHashable
 import qualified Data.List as L
 import Data.Maybe
 import qualified Data.Text as T
-import Database.SQLite3 (SQLData)
 import qualified Database.SQLite3 as Sqlite
 import GHC.Generics (Generic)
 import System.FilePath
 import Test.Framework
 
 data SqliteSrcCfg = SqliteSrcCfg
-  { ssc_fileName :: FilePath
+  { ssc_ident :: CompSrcInstanceId
+  , ssc_fileName :: FilePath
   , ssc_tableName :: TableName
   , ssc_increasingCol :: ColumnName
   -- ^ Name of the column used as increasing value for the NewRowsSince request.
@@ -181,17 +181,7 @@ instance CompSrc SqliteSrc where
   type CompSrcReq SqliteSrc = SqliteSrcReq
   type CompSrcKey SqliteSrc = SqliteDepKey
   type CompSrcVer SqliteSrc = SQLData
-  compSrcInstanceId src =
-    let cfg = ss_cfg src
-     in CompSrcInstanceId
-          ( T.pack (ssc_fileName cfg)
-              <> ":"
-              <> ssc_tableName cfg
-              <> ":"
-              <> ssc_increasingCol cfg
-              <> ":"
-              <> ssc_filterCol cfg
-          )
+  compSrcInstanceId src = ssc_ident (ss_cfg src)
   compSrcExecute = executeImpl
   compSrcUnregister = unregisterImpl
   compSrcWaitChanges = waitChangesImpl
@@ -306,7 +296,6 @@ test_basics = loop 1 -- run basicTest several times because it's not determinist
   loop n = do
     logNote ("Test run " ++ show n)
     basicTest
-    -- c_sleep realClock (seconds 1)
     when (n <= numRuns) $ loop (n + 1)
 
 basicTest :: IO ()
@@ -325,7 +314,8 @@ basicTest =
               <> ");"
           let cfg =
                 SqliteSrcCfg
-                  { ssc_fileName = T.unpack dbPath
+                  { ssc_ident = "testSqliteSrc"
+                  , ssc_fileName = T.unpack dbPath
                   , ssc_tableName = "test_table"
                   , ssc_increasingCol = "time"
                   , ssc_filterCol = "id"
