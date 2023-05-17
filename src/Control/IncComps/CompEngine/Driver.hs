@@ -1,15 +1,16 @@
 module Control.IncComps.CompEngine.Driver (
-  RunStats(..),
+  RunStats (..),
   compDriver,
-  regSrc
+  regSrc,
 ) where
 
 ----------------------------------------
 -- LOCAL
 ----------------------------------------
+
+import Control.IncComps.CompEngine.CompDef
 import Control.IncComps.CompEngine.CompFlowRegistry
 import Control.IncComps.CompEngine.CompSrc
-import Control.IncComps.CompEngine.CompDef
 import Control.IncComps.CompEngine.Core
 import Control.IncComps.CompEngine.Run
 import Control.IncComps.CompEngine.Types
@@ -25,16 +26,15 @@ import Control.Concurrent.STM
 import Control.Monad
 import Data.Time.Clock
 
-
 data RunStats = RunStats
   { rs_run :: Int
   , rs_hadChanges :: Bool
   , rs_staleCaps :: Int
   }
 
-compDriver ::
-  (IsCompParam p, IsCompResult r) =>
-  TVar (Option RunStats)
+compDriver
+  :: (IsCompParam p, IsCompResult r)
+  => TVar (Option RunStats)
   -> (CompFlowRegistry -> IO () -> IO a)
   -> CompDefM (Comp p r)
   -> p
@@ -44,18 +44,18 @@ compDriver runVar withRegisteredFlows defineComps startVal = do
   withStateIf $ \stateIf -> withRegisteredFlows reg $ do
     let ifs =
           CompEngineIfs
-          { ce_compFlowRegistry = reg
-          , ce_stateIf = stateIf
-          }
+            { ce_compFlowRegistry = reg
+            , ce_stateIf = stateIf
+            }
         rifs =
           RunCompEngineIf
-          { rcif_shouldStartWithRun = shouldStartNextRun stateIf reg runVar
-          , rcif_emptyChangesMode = Block
-          , rcif_getTime = getCurrentTime
-          , rcif_maxLoopRunTime = (seconds 10)
-          , rcif_maxRunIterations = CompRunUnlimitedIterations
-          , rcif_reportGarbage = garbageHandler reg
-          }
+            { rcif_shouldStartWithRun = shouldStartNextRun stateIf reg runVar
+            , rcif_emptyChangesMode = Block
+            , rcif_getTime = getCurrentTime
+            , rcif_maxLoopRunTime = (seconds 10)
+            , rcif_maxRunIterations = CompRunUnlimitedIterations
+            , rcif_reportGarbage = garbageHandler reg
+            }
     comps <- rootComps
     runCompEngine ifs comps rifs ()
  where

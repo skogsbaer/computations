@@ -186,7 +186,6 @@ overviewCompDef :: Comp () PatMap -> Comp () PatSet -> Comp PatId URL -> CompDef
 overviewCompDef patMapC recentPatsC patC =
   mkComp "overviewComp" onlyCacheLHCaching $ \() ->
     do
-      compSinkReq jsonFileSinkId (MakeDirs ".") -- create the root directory to avoid being deleted
       pm <- evalCompOrFail patMapC ()
       recentPats <- evalCompOrFail recentPatsC ()
       sectAll <- renderSection "All patients" (HashMap.elems pm)
@@ -199,8 +198,8 @@ overviewCompDef patMapC recentPatsC patC =
   renderSection :: T.Text -> [Pat] -> CompM MSection
   renderSection title pats =
     do
-      links <- forM (sortPats pats) renderPat
-      let list = MList (SL.fromList (catMaybes links))
+      links <- catMaybes <$> forM (sortPats pats) renderPat
+      let list = MList (SL.fromList links)
       pure (MSection (Some title) (SL.singleton (MContentList list)))
   renderPat :: Pat -> CompM (Maybe MListItem)
   renderPat pat =

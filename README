@@ -9,6 +9,7 @@ stack run -- test
 ## Demo: Hospital
 
 ```
-stack run -- --log-level debug hospital-pipeline --config hospital-config/ --root output
-stack run -- --log-level debug hospital-simulation --root output
+stack run -- --log-level debug hospital-pipeline --config hospital-config/ --root run-data
+stack run -- --log-level debug hospital-simulation --root run-data
 ```
+vascrip

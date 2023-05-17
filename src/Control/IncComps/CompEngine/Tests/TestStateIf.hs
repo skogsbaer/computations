@@ -339,7 +339,8 @@ eqiCapSize :: EnqueueInfo -> Int
 eqiCapSize = Map.size . ei_affectedCaps
 
 mkCompDeps
-  :: [(CompAp a, Maybe a)]
+  :: IsCompResult a
+  => [(CompAp a, Maybe a)]
   -> DepSet
 mkCompDeps xs = HashSet.fromList [mkCompDepForCap cap val | (cap, val) <- xs]
 
@@ -353,7 +354,8 @@ mkExtDeps xs =
   f (k, v) = CompEngDepSrc (wrapCompSrcDep TestStateSrc (Dep k v))
 
 mkDeps
-  :: [(T.Text, Int)]
+  :: IsCompResult c
+  => [(T.Text, Int)]
   -> [(CompAp c, Maybe c)]
   -> DepSet
 mkDeps xs ys = mkExtDeps xs `HashSet.union` mkCompDeps ys
@@ -472,7 +474,7 @@ rootCompDef fooComp barComp =
 getStale :: Functor m => CompEngineStateIf m -> m [CapId]
 getStale sif = fmap (fmap anyCapId) (getQueue sif)
 
-dequeueAndStartCap :: (Monad m) => CompEngineStateIf m -> CompAp a -> m Bool
+dequeueAndStartCap :: (IsCompResult a, Monad m) => CompEngineStateIf m -> CompAp a -> m Bool
 dequeueAndStartCap sif cap =
   do
     r <- dequeueGivenCap sif cap
@@ -487,7 +489,7 @@ dequeueAndStartNextCap sif =
     return mCap
 
 capEvaluation
-  :: (Monad m)
+  :: (IsCompResult a, Monad m)
   => CompEngineStateIf m
   -> CompAp a
   -> DepSet

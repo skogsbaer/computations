@@ -5,7 +5,7 @@ module Control.IncComps.Demos.Hospital.PatNotesDb (
   withPatNotesDb,
   patNotesSqliteSrcCfg,
   patNotes,
-  insertPatNote
+  insertPatNote,
 ) where
 
 ----------------------------------------
@@ -82,7 +82,9 @@ insertPatNote :: Sqlite.Database -> PatNote -> IO ()
 insertPatNote db note = do
   let sql = "INSERT INTO pat_notes (pat_id, time, text) VALUES (:id, :time, :text)"
   Sqlite.withStatement db sql $ \stmt ->
-    Sqlite.insert stmt
-      [(":id", Sqlite.SQLText (unPatId (pn_patId note))),
-       (":time", Sqlite.SQLText (formatUTCTime (pn_time note))),
-       (":text", Sqlite.SQLText (pn_text note))]
+    Sqlite.insert
+      stmt
+      [ (":id", Sqlite.SQLText (unPatId (pn_patId note)))
+      , (":time", Sqlite.SQLText (formatUTCTime (pn_time note)))
+      , (":text", Sqlite.SQLText (pn_text note))
+      ]

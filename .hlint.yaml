@@ -24,3 +24,4 @@
 - ignore: {name: "Reduce duplication" }
 - ignore: {name: "Use section" }
 - ignore: {name: "Use uncurry" }
+- ignore: {name: "Use second" }

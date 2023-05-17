@@ -136,20 +136,20 @@ executeImpl fcs req =
           pure (DirEntry name (fs_type s))
       pure (HashSet.fromList l2)
  where
-   qualify p =
-     case fcsc_rootDir (fcs_config fcs) of
-       None -> p
-       Some d -> d </> p
-   doWork :: FilePath -> (FilePath -> IO a) -> IO (HashSet FileDep, Fail a)
-   doWork path getResult = do
-     canonP <- watchFile (fcs_fileWatch fcs) path
-     let action = do
-           res <- getResult path
-           status <- getFileStatus path
-           pure (Ok res, Some (fileVerFromStatus status))
-     (res, version) <- catch action $ \(e :: IOException) -> pure (Fail (show e), None)
-     let deps = HashSet.singleton (Dep (FileKey canonP) version)
-     pure (deps, res)
+  qualify p =
+    case fcsc_rootDir (fcs_config fcs) of
+      None -> p
+      Some d -> d </> p
+  doWork :: FilePath -> (FilePath -> IO a) -> IO (HashSet FileDep, Fail a)
+  doWork path getResult = do
+    canonP <- watchFile (fcs_fileWatch fcs) path
+    let action = do
+          res <- getResult path
+          status <- getFileStatus path
+          pure (Ok res, Some (fileVerFromStatus status))
+    (res, version) <- catch action $ \(e :: IOException) -> pure (Fail (show e), None)
+    let deps = HashSet.singleton (Dep (FileKey canonP) version)
+    pure (deps, res)
 
 unregisterImpl :: FileSrc -> HashSet FileKey -> IO ()
 unregisterImpl fcs keys = do

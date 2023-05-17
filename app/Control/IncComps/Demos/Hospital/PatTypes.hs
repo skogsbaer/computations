@@ -11,8 +11,9 @@ module Control.IncComps.Demos.Hospital.PatTypes (
 ----------------------------------------
 -- LOCAL
 ----------------------------------------
-import Control.IncComps.Utils.Types
+
 import Control.IncComps.Demos.Hospital.FakeNames
+import Control.IncComps.Utils.Types
 
 ----------------------------------------
 -- EXTERNAL
@@ -48,10 +49,12 @@ instance FromJSON Sex
 
 instance Arbitrary Sex where
   arbitrary =
-    frequency [(20, pure SexMale),
-               (20, pure SexFemale),
-               (1, pure SexUnknown),
-               (1, pure (SexOther "neutr"))]
+    frequency
+      [ (20, pure SexMale)
+      , (20, pure SexFemale)
+      , (1, pure SexUnknown)
+      , (1, pure (SexOther "neutr"))
+      ]
 
 data Name = Name
   { n_lastName :: T.Text
@@ -72,14 +75,14 @@ instance Arbitrary Name where
 
 arbitraryName :: Sex -> Gen Name
 arbitraryName sex = do
-    let first =
-          case sex of
-            SexMale -> firstNamesMale
-            SexFemale -> firstNamesFemale
-            _ -> firstNames
-    first <- elements first
-    last <- elements lastNames
-    pure (Name last first)
+  let first =
+        case sex of
+          SexMale -> firstNamesMale
+          SexFemale -> firstNamesFemale
+          _ -> firstNames
+  first <- elements first
+  last <- elements lastNames
+  pure (Name last first)
 
 data Pat = Pat
   { p_patId :: PatId

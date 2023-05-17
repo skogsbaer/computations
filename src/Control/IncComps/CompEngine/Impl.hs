@@ -34,7 +34,6 @@ import Control.IncComps.Utils.Types
 ----------------------------------------
 -- EXTERNAL
 ----------------------------------------
-
 import Control.Monad
 import Control.Monad.Reader
 import Control.Monad.State
@@ -149,13 +148,13 @@ evalCompEngineM cet env =
 initCompAp
   :: CompAp a
   -> CompM a
-initCompAp cap@(CompAp{cap_comp = gen, cap_param = p}) = comp_fun gen env
+initCompAp cap@(CompAp _ comp p) = comp_fun comp env
  where
   env =
     CompEnv
       { ce_cachedResult = doAnyRequest $ CompReqCache cap
       , ce_param = p
-      , ce_comp = gen
+      , ce_comp = comp
       }
 
 withCompState :: (CompEngineStateIf IO -> IO a) -> CompEngineM a
@@ -164,8 +163,10 @@ withCompState mkAction =
     do
       action <- asks (mkAction . ce_stateIf . ce_compEngineIfs)
       lift (lift action)
+
 doCompAp
-  :: CompAp a
+  :: IsCompResult a
+  => CompAp a
   -> CompEngineM (Maybe (CompApResult a))
 doCompAp gap =
   do
@@ -187,7 +188,8 @@ doCompAp gap =
 
 evalCompAp
   :: forall a
-   . CompAp a
+   . IsCompResult a
+  => CompAp a
   -> CompEngineM (DepSet, CompResult (CompApResult a))
 evalCompAp outerCap =
   do
@@ -209,11 +211,13 @@ evalCompAp outerCap =
       )
     return result
  where
-  r = case outerCap of
-    CompAp _ comp _ -> comp_compMap comp
+  r =
+    case outerCap of
+      CompAp _ comp _ -> comp_compMap comp
   doAnyEvalReq
     :: forall a x
-     . CompAp x
+     . IsCompResult x
+    => CompAp x
     -> CompCont (Maybe (CompApResult x)) a
     -> CompEngineM (DepSet, CompResult a)
   doAnyEvalReq innerCap k =
@@ -221,7 +225,8 @@ evalCompAp outerCap =
 
   doAnyCacheReq
     :: forall a x
-     . CompAp x
+     . IsCompResult x
+    => CompAp x
     -> CompCont (Maybe x) a
     -> CompEngineM (DepSet, CompResult a)
   doAnyCacheReq innerCap k =
@@ -229,7 +234,8 @@ evalCompAp outerCap =
 
   evalWithCache
     :: forall a x
-     . Bool
+     . IsCompResult x
+    => Bool
     -> CompAp x
     -> CompCont (Maybe (CompApResult x)) a
     -> CompEngineM (Maybe (CompApResult x))
@@ -245,7 +251,8 @@ evalCompAp outerCap =
 
   evalWithCapCached
     :: forall a b
-     . CompAp a
+     . IsCompResult a
+    => CompAp a
     -> CompEngineM (Maybe (CompApResult a))
     -> (Maybe (CompApResult a) -> CompEngineM b)
     -> Bool
@@ -288,7 +295,8 @@ evalCompAp outerCap =
 
   withCapLookup
     :: forall a b c
-     . CompAp a
+     . IsCompResult a
+    => CompAp a
     -> CompEngineM (Maybe (CompApResult a))
     -> (Maybe (CompApResult a) -> CompEngineM c)
     -> (b -> CompEngineM c)
@@ -310,7 +318,7 @@ evalCompAp outerCap =
 
   doCompSinkReq
     :: forall x a s
-     . CompSink s
+     . (CompSink s)
     => TypedCompSinkId s
     -> CompSinkReq s a
     -> CompCont (Fail a) x
@@ -417,7 +425,8 @@ startCompEngine compEngineIfs genAps =
     return compEngine
 
 evalWithCompEngine
-  :: CompEngine
+  :: IsCompResult r
+  => CompEngine
   -> CompAp r
   -> IO (Maybe r)
 evalWithCompEngine compEngine genAp =

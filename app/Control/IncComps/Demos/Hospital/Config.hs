@@ -2,6 +2,7 @@ module Control.IncComps.Demos.Hospital.Config (
   Config (..),
   defaultConfig,
   parseConfig,
+  parseConfigFile,
 ) where
 
 ----------------------------------------
@@ -14,10 +15,10 @@ import Control.IncComps.Utils.TimeSpan
 -- EXTERNAL
 ----------------------------------------
 import Data.Aeson
-import Data.Maybe
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
 import Data.LargeHashable
+import Data.Maybe
 import GHC.Generics (Generic)
 import Safe
 
@@ -44,30 +45,36 @@ defaultConfig =
     }
 
 instance FromJSON Config where
-    parseJSON = withObject "Config" $ \v -> do
-      recent <- getTimeSpan v "recentTime"
-      afterDischarge <- getTimeSpan v "afterDischarge"
-      beforeAdmission <- getTimeSpan v "beforeAdmission"
-      pure $ Config {
-          c_recentTimeSpan =
-             fromMaybe (c_recentTimeSpan defaultConfig) recent
+  parseJSON = withObject "Config" $ \v -> do
+    recent <- getTimeSpan v "recentTime"
+    afterDischarge <- getTimeSpan v "afterDischarge"
+    beforeAdmission <- getTimeSpan v "beforeAdmission"
+    pure $
+      Config
+        { c_recentTimeSpan =
+            fromMaybe (c_recentTimeSpan defaultConfig) recent
         , c_visibleAfterDischarge =
             fromMaybe (c_visibleAfterDischarge defaultConfig) afterDischarge
         , c_visibleBeforeAdmission =
             fromMaybe (c_visibleBeforeAdmission defaultConfig) beforeAdmission
         }
-      where
-        getTimeSpan v k = do
-          ms <- v .:? k
-          case ms of
-            Nothing -> pure Nothing
-            Just s ->
-              case readMay s of
-                Just ts -> pure $ Just (ts :: TimeSpan)
-                Nothing -> fail ("Invalid timespan: " ++ s)
+   where
+    getTimeSpan v k = do
+      ms <- v .:? k
+      case ms of
+        Nothing -> pure Nothing
+        Just s ->
+          case readMay s of
+            Just ts -> pure $ Just (ts :: TimeSpan)
+            Nothing -> fail ("Invalid timespan: " ++ s)
 
 parseConfig :: BS.ByteString -> Fail Config
 parseConfig bs =
   case eitherDecode (BSL.fromStrict bs) of
     Right cfg -> Ok cfg
     Left err -> Fail ("Error parsing config: " ++ err)
+
+parseConfigFile :: FilePath -> IO Config
+parseConfigFile path = do
+  bs <- BS.readFile path
+  failInM $ parseConfig bs

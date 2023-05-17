@@ -5,16 +5,16 @@
 
 packages:
 - completed:
-    commit: 4d149c828c185bcf05556d1660f79ff1aec7eaa1
-    git: https://github.com/factisresearch/large-hashable.git
+    commit: a98e394ad754080985d91ad5003738383ad46b25
+    git: https://github.com/skogsbaer/large-hashable.git
     name: large-hashable
     pantry-tree:
-      sha256: 68f537b5929552cb1513ceaf25893b3ec21f9898864eb410f0f9a324fde3eb9f
-      size: 2325
-    version: 0.1.0.4
+      sha256: e734e11ae663d17a3784e01b102ccbf9079952b0eca63eac04a849c1908de1be
+      size: 2673
+    version: 0.1.0.5
   original:
-    commit: 4d149c828c185bcf05556d1660f79ff1aec7eaa1
-    git: https://github.com/factisresearch/large-hashable.git
+    commit: a98e394ad754080985d91ad5003738383ad46b25
+    git: https://github.com/skogsbaer/large-hashable.git
 - completed:
     hackage: algebraic-graphs-0.6.1@sha256:528bddb6a58e175c0b37446d4621b5ffd2dadc9d53910b61ddafb0e81088f4bc,8625
     pantry-tree:

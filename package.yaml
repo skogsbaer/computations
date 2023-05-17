@@ -63,7 +63,7 @@ ghc-options:
   - -Wno-name-shadowing
   - -Wpartial-fields
   - -Wredundant-constraints
-  #- -Werror
+  - -Werror
 
 default-extensions:
   - BangPatterns
@@ -100,8 +100,13 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - HTF
+    - binary
+    - http-types
     - incremental-computations
     - optparse-applicative
+    - wai
+    - wai-extra
+    - warp
 
 tests:
   incremental-computations-test:

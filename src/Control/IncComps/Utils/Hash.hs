@@ -13,7 +13,6 @@ where
 ----------------------------------------
 -- EXTERNAL
 ----------------------------------------
-
 import qualified Data.ByteString.Base16 as Base16
 import Data.Hashable
 import qualified Data.LargeHashable as LH
@@ -31,15 +30,10 @@ instance LH.LargeHashable LH.Word128
 instance Hashable Hash128
 instance LH.LargeHashable Hash128
 
-largeHashableMD5HashToHash128 :: LH.MD5Hash -> Hash128
-largeHashableMD5HashToHash128 h =
-  let w128 = LH.unMD5Hash h
-   in Hash128 $ LH.Word128 (LH.w128_first w128) (LH.w128_second w128)
-
 largeHash128 :: LH.LargeHashable a => a -> Hash128
 largeHash128 x =
-  let h = (LH.largeHash LH.md5HashAlgorithm x)
-   in largeHashableMD5HashToHash128 h
+  let h = LH.largeHash LH.md5HashAlgorithm x
+   in Hash128 (LH.unMD5Hash h)
 
 hashToHexText :: Hash128 -> T.Text
 hashToHexText (Hash128 w) = T.decodeUtf8 (Base16.encode (LH.w128ToBs w))

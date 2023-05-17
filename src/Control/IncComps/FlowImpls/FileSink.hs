@@ -186,7 +186,8 @@ deleteImpl sink outs = mapM_ del (HashSet.toList outs)
 
 listExistingOutputsImpl :: FileSink -> IO (HashSet FileSinkOut)
 listExistingOutputsImpl sink =
-  loop (outPath ".") (HashSet.singleton (FileSinkOut (outPath ".") Dir))
+  -- don't include, otherwise it gets deleted if no computation explicitly creates it
+  loop (outPath ".") HashSet.empty
  where
   loop outP acc =
     do
@@ -228,26 +229,26 @@ test_basics =
       subAssert $
         assertContent
           sink
-          [("x", File), ("d1", Dir), ("d1/d2", Dir), ("d1/d2/y", File), (".", Dir)]
+          [("x", File), ("d1", Dir), ("d1/d2", Dir), ("d1/d2/y", File)]
           [("x", "1"), ("d1/d2/y", "2")]
       deleteImpl sink out2
       deleteImpl sink out2 -- no error
       subAssert $
         assertContent
           sink
-          [("x", File), ("d1", Dir), (".", Dir)]
+          [("x", File), ("d1", Dir)]
           [("x", "1")]
       void $ executeImpl sink (WriteFile "d1" "3")
       subAssert $
         assertContent
           sink
-          [("x", File), ("d1", File), (".", Dir)]
+          [("x", File), ("d1", File)]
           [("x", "1"), ("d1", "3")]
       void $ executeImpl sink (MakeDirs "x")
       subAssert $
         assertContent
           sink
-          [("x", Dir), ("d1", File), (".", Dir)]
+          [("x", Dir), ("d1", File)]
           [("d1", "3")]
  where
   assertContent :: FileSink -> [(FilePath, FileOrDir)] -> [(FilePath, BS.ByteString)] -> IO ()

@@ -67,14 +67,15 @@ evalCompWithDefault comp p def =
       Nothing -> pure def
       Just x -> pure x
 
-mkCompDepForCap :: CompAp a -> Maybe a -> CompEngDep
+mkCompDepForCap :: IsCompResult a => CompAp a -> Maybe a -> CompEngDep
 mkCompDepForCap = mkCompDepForCapHelper mkCompDepVer
 
-mkCompDepForCap' :: CompAp a -> Maybe (CompApResult a) -> CompEngDep
+mkCompDepForCap' :: IsCompResult a => CompAp a -> Maybe (CompApResult a) -> CompEngDep
 mkCompDepForCap' = mkCompDepForCapHelper mkCompDepVer'
 
 mkCompDepForCapHelper
-  :: (CompAp r -> t -> CompDepVer)
+  :: IsCompResult r
+  => (CompAp r -> t -> CompDepVer)
   -> CompAp r
   -> t
   -> CompEngDep

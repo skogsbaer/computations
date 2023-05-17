@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTSyntax #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeFamilies #-}
 
@@ -62,8 +63,13 @@ module Control.IncComps.CompEngine.Types (
   -- * Applications of computations. `CompAp` and `Cap` are
 
   -- both abbreviations for "computation application"
-  CompAp (..),
+  CompAp,
+  pattern CompAp,
+  cap_comp,
+  cap_hash,
+  cap_param,
   AnyCompAp (..),
+  showAnyCompApDetails,
   CapId (..),
   CompApResult (..),
   mkCapId,
@@ -435,12 +441,52 @@ type DepSet = HashSet CompEngDep
 
 data CompAp r = forall p.
   (IsCompParam p, IsCompResult r) =>
-  CompAp
-  { cap_hash :: Hash128
-  , cap_comp :: Comp p r
-  , cap_param :: p
+  CompApIntern
+  { capI_hash :: Hash128
+  -- ^ Hash of computation name and param
+  , capI_comp :: Comp p r
+  , capI_param :: p
   }
   deriving (Typeable)
+
+{-# COMPLETE CompAp #-}
+pattern CompAp
+  :: forall r
+   . ()
+  => forall p
+   . (IsCompParam p, IsCompResult r)
+  => Hash128
+  -> Comp p r
+  -> p
+  -> CompAp r
+pattern CompAp{cap_hash, cap_comp, cap_param} <- CompApIntern cap_hash cap_comp cap_param
+
+mkCompAp :: (IsCompParam p, IsCompResult r) => Comp p r -> p -> CompAp r
+mkCompAp comp p = value
+ where
+  value =
+    CompApIntern
+      { capI_hash =
+          largeHash128 (compId_name $ comp_name comp, p)
+      , capI_comp = comp
+      , capI_param = p
+      }
+
+showCompApDetails :: CompAp r -> String
+showCompApDetails (CompApIntern h c p) =
+  "CompAp " ++ show h ++ " (" ++ show (comp_name c) ++ ") (" ++ show p ++ ")"
+
+instance Show (CompAp r) where
+  show (CompApIntern _ c p) = T.unpack (compId_name (comp_name c)) ++ "(" ++ show p ++ ")"
+
+instance Eq (CompAp r) where
+  (==) gap1 gap2 = (==) (cap_hash gap1) (cap_hash gap2)
+
+instance Ord (CompAp r) where
+  compare = comparing cap_hash
+
+instance Hashable (CompAp r) where
+  hashWithSalt s = hashWithSalt s . cap_hash
 
 data CapId = CapId
   { capId_compId :: CompId
@@ -485,13 +531,13 @@ mkCapId compId p =
   theParamText = showText p
 
 capCompId :: CompAp r -> CompId
-capCompId (CompAp{cap_comp = c}) = comp_name c
+capCompId (CompApIntern _ comp _) = comp_name comp
 
 capId :: CompAp r -> CapId
-capId (CompAp _ comp p) = mkCapId (comp_name comp) p
+capId (CompApIntern _ comp param) = mkCapId (comp_name comp) param
 
 compCacheValue :: CompAp a -> a -> CompCacheValue a
-compCacheValue (CompAp _ comp _) = ccb_memcache (comp_caching comp)
+compCacheValue (CompApIntern _ comp _) = ccb_memcache (comp_caching comp)
 
 -- | Value resulting from applying a computation.
 data CompApResult a = CompApResult
@@ -505,32 +551,28 @@ data CompApResult a = CompApResult
 compApResult :: CompAp a -> a -> CompApResult a
 compApResult cap a = CompApResult a (compCacheValue cap a)
 
-instance Show (CompAp r) where
-  show cap@(CompAp _ _ p) = T.unpack (compId_name (capCompId cap)) ++ "(" ++ show p ++ ")"
-
-instance Eq (CompAp r) where
-  (==) gap1 gap2 = (==) (cap_hash gap1) (cap_hash gap2)
-
-instance Ord (CompAp r) where
-  compare = comparing cap_hash
-
-instance Hashable (CompAp r) where
-  hashWithSalt s = hashWithSalt s . cap_hash
-
-data AnyCompAp = forall r. AnyCompAp (CompAp r)
+data AnyCompAp = forall r. IsCompResult r => AnyCompAp (CompAp r)
   deriving (Typeable)
 
 instance Show AnyCompAp where
   show (AnyCompAp gap) = show gap
 
+showAnyCompApDetails :: AnyCompAp -> String
+showAnyCompApDetails (AnyCompAp (ca :: CompAp r)) =
+  "AnyCompAp "
+    ++ show (typeRep (Proxy @r))
+    ++ " ("
+    ++ showCompApDetails ca
+    ++ ")"
+
 instance Eq AnyCompAp where
-  (AnyCompAp (l@CompAp{} :: CompAp a)) == (AnyCompAp (r@CompAp{} :: CompAp b)) =
+  (AnyCompAp (l :: CompAp a)) == (AnyCompAp (r :: CompAp b)) =
     case eqT :: Maybe (a :~: b) of
       Nothing -> False
       Just Refl -> l == r
 
 instance Ord AnyCompAp where
-  (AnyCompAp (l@CompAp{} :: CompAp a)) `compare` (AnyCompAp (r@CompAp{} :: CompAp b)) =
+  (AnyCompAp (l :: CompAp a)) `compare` (AnyCompAp (r :: CompAp b)) =
     case eqT :: Maybe (a :~: b) of
       Nothing -> compare (typeRep l) (typeRep r)
       Just Refl -> compare l r
@@ -538,7 +580,7 @@ instance Ord AnyCompAp where
 instance Hashable AnyCompAp where
   hashWithSalt s (AnyCompAp gap) = hashWithSalt s gap
 
-wrapCompAp :: CompAp r -> AnyCompAp
+wrapCompAp :: IsCompResult r => CompAp r -> AnyCompAp
 wrapCompAp = AnyCompAp
 
 anyCompApPriority :: AnyCompAp -> PaqPriority
@@ -546,14 +588,3 @@ anyCompApPriority (AnyCompAp cap) = compId_priority (capCompId cap)
 
 anyCapId :: AnyCompAp -> CapId
 anyCapId (AnyCompAp cap) = capId cap
-
-mkCompAp :: (IsCompParam p, IsCompResult r) => Comp p r -> p -> CompAp r
-mkCompAp gen p = value
- where
-  value =
-    CompAp
-      { cap_hash =
-          largeHash128 (compId_name $ comp_name gen, p)
-      , cap_comp = gen
-      , cap_param = p
-      }

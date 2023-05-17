@@ -20,6 +20,7 @@ module Control.IncComps.Utils.Types (
   mkEmpty,
   showHelper1,
   showHelper2,
+  showHelper3,
   readM,
 ) where
 
@@ -173,6 +174,17 @@ identifyType _ = identifyProxy (Proxy :: Proxy a)
 
 identifyProxy :: forall a. Typeable a => Proxy a -> TypeId
 identifyProxy p = TypeId (showText (typeRep p))
+
+showHelper3 :: (Show a, Show b, Show c) => Int -> String -> a -> b -> c -> ShowS
+showHelper3 p name a b c =
+  showParen (p > 10) $
+    showString name
+      . showString " "
+      . showsPrec 11 a
+      . showString " "
+      . showsPrec 11 b
+      . showString " "
+      . showsPrec 11 c
 
 showHelper2 :: (Show a, Show b) => Int -> String -> a -> b -> ShowS
 showHelper2 p name a b =

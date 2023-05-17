@@ -7,7 +7,8 @@ module Control.IncComps.Demos.Hospital.PatDb (
   withPatDb,
   patSqliteSrcCfg,
   patMsgsSince,
-  insertPat
+  insertPat,
+  rowToPatMsg,
 ) where
 
 ----------------------------------------
@@ -23,7 +24,6 @@ import Control.IncComps.Utils.Types
 ----------------------------------------
 -- EXTERNAL
 ----------------------------------------
-
 import qualified Data.Aeson as J
 import qualified Data.ByteString.Lazy as BSL
 import Data.Hashable
@@ -93,6 +93,8 @@ insertPat db pat = do
   let bs = BSL.toStrict (J.encode pat)
       sql = "INSERT INTO pat_msgs (pat_id, msg) VALUES (:id, :msg)"
   Sqlite.withStatement db sql $ \stmt ->
-    Sqlite.insert stmt
-      [(":id", Sqlite.SQLText (unPatId (p_patId pat))),
-       (":msg", Sqlite.SQLBlob bs)]
+    Sqlite.insert
+      stmt
+      [ (":id", Sqlite.SQLText (unPatId (p_patId pat)))
+      , (":msg", Sqlite.SQLBlob bs)
+      ]

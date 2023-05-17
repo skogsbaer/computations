@@ -95,15 +95,16 @@ isGarbageEmpty (Garbage caps deps outs) =
 data CompEngineStateIf m = CompEngineStateIf
   { lookupCapResult
       :: forall a
-       . CompAp a
+       . IsCompResult a
+      => CompAp a
       -> m (CapLookup (CapResult (CapCached a)))
-  , capEvaluationStarted :: forall a. CompAp a -> m ()
-  , capEvaluationFinished :: forall a. CapEvaluationFinished m a
-  , dequeueGivenCap :: forall a. CompAp a -> m Bool
+  , capEvaluationStarted :: forall a. IsCompResult a => CompAp a -> m ()
+  , capEvaluationFinished :: forall a. IsCompResult a => CapEvaluationFinished m a
+  , dequeueGivenCap :: forall a. IsCompResult a => CompAp a -> m Bool
   , dequeueNextCap :: m (Maybe AnyCompAp)
   , staleQueueSize :: m Int
   , enqueueStaleCaps :: forall t. Foldable t => t CompEngDep -> m EnqueueInfo
-  , trackOutput :: forall a. CompAp a -> AnyCompSinkOutsMap -> m ()
+  , trackOutput :: forall a. IsCompResult a => CompAp a -> AnyCompSinkOutsMap -> m ()
   , getCompSinkOuts :: forall s. CompSink s => s -> m (CompSinkOuts s)
   , getQueue :: m [AnyCompAp]
   -- ^ view of the queue, just for tests

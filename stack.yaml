@@ -4,8 +4,8 @@ packages:
 - .
 
 extra-deps:
-- git: https://github.com/factisresearch/large-hashable.git
-  commit: 4d149c828c185bcf05556d1660f79ff1aec7eaa1
+- git: https://github.com/skogsbaer/large-hashable.git
+  commit: a98e394ad754080985d91ad5003738383ad46b25
 - algebraic-graphs-0.6.1@sha256:528bddb6a58e175c0b37446d4621b5ffd2dadc9d53910b61ddafb0e81088f4bc,8625
   # for weeder (dead code elimination)
 

@@ -27,12 +27,6 @@ module Control.IncComps.Utils.Logging (
   pureWarn,
   pureError,
   pureNoLog,
-  logTraceM,
-  logDebugM,
-  logInfoM,
-  logNoteM,
-  logWarnM,
-  logErrorM
 ) where
 
 ----------------------------------------
@@ -198,24 +192,3 @@ pureError msg = doLogPure ERROR callStack msg
 
 pureNoLog :: String -> a -> a
 pureNoLog _ x = x
-
-doLogM :: Monad m => LogLevel -> CallStack -> String -> m ()
-doLogM level loc msg = doLogPure level loc msg (pure ())
-
-logTraceM :: (HasCallStack, Monad m) => String -> m ()
-logTraceM msg = doLogM TRACE callStack msg
-
-logDebugM :: (HasCallStack, Monad m) => String -> m ()
-logDebugM msg = doLogM DEBUG callStack msg
-
-logInfoM :: (HasCallStack, Monad m) => String -> m ()
-logInfoM msg = doLogM INFO callStack msg
-
-logNoteM :: (HasCallStack, Monad m) => String -> m ()
-logNoteM msg = doLogM NOTE callStack msg
-
-logWarnM :: (HasCallStack, Monad m) => String -> m ()
-logWarnM msg = doLogM WARN callStack msg
-
-logErrorM :: (HasCallStack, Monad m) => String -> m ()
-logErrorM msg = doLogM ERROR callStack msg
