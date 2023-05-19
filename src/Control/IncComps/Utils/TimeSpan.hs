@@ -48,7 +48,6 @@ import Data.LargeHashable
 import Data.Time.Clock
 import GHC.Generics (Generic)
 import Test.Framework
-import Test.QuickCheck
 import qualified Text.Megaparsec as P
 import qualified Text.Megaparsec.Char as P
 import qualified Text.Megaparsec.Char.Lexer as L

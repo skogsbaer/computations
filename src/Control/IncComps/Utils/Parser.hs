@@ -59,7 +59,6 @@ import Control.IncComps.Utils.Types hiding (option)
 import Control.Arrow
 import Control.Monad
 import Data.Char
-import Data.Functor
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as B
@@ -259,7 +258,7 @@ constrP :: T.Text -> Parser ()
 constrP = symbolP
 
 constrP' :: T.Text -> a -> Parser a
-constrP' c x = symbolP c $> pure x
+constrP' c x = symbolP c *> pure x
 
 fieldP :: T.Text -> Parser a -> Parser a
 fieldP name valueP =
@@ -383,7 +382,7 @@ optionP :: HaskellParser a -> HaskellParser (Option a)
 optionP valueP enclosingPrec =
   noneP <|> (parensP' (enclosingPrec > functionApplicationPrecedence) (someP <|> noneP))
  where
-  noneP = constrP "None" $> pure None
+  noneP = constrP "None" *> pure None
   someP =
     do
       constrP "Some"

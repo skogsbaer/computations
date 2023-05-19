@@ -80,7 +80,6 @@ library
       Control.IncComps.Utils.Tuple
       Control.IncComps.Utils.Types
       Control.IncComps.Utils.VirtualTime
-      Control.Test
   other-modules:
       Paths_incremental_computations
   hs-source-dirs:

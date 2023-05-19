@@ -25,3 +25,4 @@
 - ignore: {name: "Use section" }
 - ignore: {name: "Use uncurry" }
 - ignore: {name: "Use second" }
+- ignore: {name: "Use $>" }
