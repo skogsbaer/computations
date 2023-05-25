@@ -1,5 +1,5 @@
 module Control.Computations.CompEngine.CacheBehaviors (
-  memCaching,
+  fullCaching,
   inMemoryShowCaching,
   hashCaching,
 ) where
@@ -23,8 +23,8 @@ logreprLength :: Int
 logreprLength = 40
 
 -- | Stores the value itself in the cache, uses `LargeHashable` to compute the hash.
-memCaching :: (LH.LargeHashable a, Show a) => CompCacheBehavior a
-memCaching = CompCacheBehavior f
+fullCaching :: (LH.LargeHashable a, Show a) => CompCacheBehavior a
+fullCaching = CompCacheBehavior f
  where
   f x =
     let s = show x

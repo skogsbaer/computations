@@ -68,7 +68,7 @@ mkCompDefWithPriority prio name caching fun =
 
 mkIncCompDef :: (IsCompResult r, LargeHashable r) => String -> r -> (p -> r -> CompM r) -> CompDef p r
 mkIncCompDef name initState updateFun =
-  mkCompDefX name memCaching $ \ce ->
+  mkCompDefX name fullCaching $ \ce ->
     do
       mCachedValue <- ce_cachedResult ce
       updateFun (ce_param ce) (fromMaybe initState mCachedValue)

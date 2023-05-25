@@ -418,7 +418,7 @@ cComp, l1Comp, l2Comp, rComp :: Comp Int BS.ByteString
 
 cCompDef :: CompDef Int BS.ByteString
 cCompDef =
-  mkCompDef "c" memCaching $ \(_ :: Int) ->
+  mkCompDef "c" fullCaching $ \(_ :: Int) ->
     return ""
 
 lCompDef
@@ -427,7 +427,7 @@ lCompDef
   -> Comp Int r
   -> CompDef Int r
 lCompDef n cComp =
-  mkCompDef n memCaching $ \(p :: Int) ->
+  mkCompDef n fullCaching $ \(p :: Int) ->
     do
       Just x <- evalComp cComp p
       return x
@@ -438,7 +438,7 @@ rCompDef
   -> Comp Int BS.ByteString
   -> CompDef Int BS.ByteString
 rCompDef cComp l1Comp l2Comp =
-  mkCompDef "r" memCaching $ \(p :: Int) ->
+  mkCompDef "r" fullCaching $ \(p :: Int) ->
     do
       Just x <- evalComp cComp p
       Just y <- evalComp l1Comp p
@@ -447,7 +447,7 @@ rCompDef cComp l1Comp l2Comp =
 
 fooCompDef :: CompDef Int BS.ByteString
 fooCompDef =
-  mkCompDef "foo" memCaching $ \(_ :: Int) ->
+  mkCompDef "foo" fullCaching $ \(_ :: Int) ->
     return ""
 
 barCompDef
@@ -455,7 +455,7 @@ barCompDef
   => Comp Int r
   -> CompDef Int r
 barCompDef foo =
-  mkCompDef "bar" memCaching $ \(p :: Int) ->
+  mkCompDef "bar" fullCaching $ \(p :: Int) ->
     do
       Just x <- evalComp foo p
       return x
@@ -465,7 +465,7 @@ rootCompDef
   -> Comp Int BS.ByteString
   -> CompDef Int BS.ByteString
 rootCompDef fooComp barComp =
-  mkCompDef "root" memCaching $ \(p :: Int) ->
+  mkCompDef "root" fullCaching $ \(p :: Int) ->
     do
       Just x <- evalComp fooComp p
       Just y <- evalComp barComp p

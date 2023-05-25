@@ -125,7 +125,7 @@ admissionDateTooFarInTheFuture now ts pat =
 visiblePatsCompDef
   :: TimeIntervalType -> Comp () Config -> Comp () (Option PatMsgKey :!: PatMap) -> CompDef () PatMap
 visiblePatsCompDef interval cfgC activePatsC =
-  mkCompDef "visiblePatsComp" memCaching $ \() ->
+  mkCompDef "visiblePatsComp" fullCaching $ \() ->
     do
       (_ :!: patMap) <- evalCompOrFail activePatsC ()
       now <- compGetTime interval
@@ -138,7 +138,7 @@ visiblePatsCompDef interval cfgC activePatsC =
 
 recentPatsCompDef :: TimeIntervalType -> Comp () Config -> Comp () PatMap -> CompDef () PatSet
 recentPatsCompDef interval cfgC activePatsC =
-  mkCompDef "recentPatsComp" memCaching $ \() ->
+  mkCompDef "recentPatsComp" fullCaching $ \() ->
     do
       cfg <- evalCompOrFail cfgC ()
       patMap <- evalCompOrFail activePatsC ()
@@ -222,7 +222,7 @@ overviewCompDef patMapC recentPatsC patC =
 
 getPatCompDef :: Comp () PatMap -> CompDef PatId Pat
 getPatCompDef patMapC =
-  mkCompDef "getPatComp" memCaching $ \patId ->
+  mkCompDef "getPatComp" fullCaching $ \patId ->
     do
       pm <- evalCompOrFail patMapC ()
       case HashMap.lookup patId pm of
@@ -231,12 +231,12 @@ getPatCompDef patMapC =
 
 patNotesCompDef :: CompDef PatId (HashSet PatNote)
 patNotesCompDef =
-  mkCompDef "patNotesComp" memCaching $ \patId ->
+  mkCompDef "patNotesComp" fullCaching $ \patId ->
     patNotes patNotesSrcId patId
 
 detailsCompDef :: Comp PatId Pat -> Comp PatId (HashSet PatNote) -> CompDef PatId URL
 detailsCompDef getPatC getPatNotesC =
-  mkCompDef "detailsComp" memCaching $ \patId ->
+  mkCompDef "detailsComp" fullCaching $ \patId ->
     do
       pat <- evalCompOrFail getPatC patId
       notes <- evalCompWithDefault getPatNotesC patId HashSet.empty

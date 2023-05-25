@@ -47,13 +47,13 @@ mkdir :: FilePath -> CompM ()
 mkdir p = compSinkReq fileSinkId (MakeDirs p)
 
 fileSyncCompDef :: FilePath -> CompDef FilePath ()
-fileSyncCompDef src = mkCompDef "fileSyncComp" memCaching $ \path ->
+fileSyncCompDef src = mkCompDef "fileSyncComp" fullCaching $ \path ->
   do
     bs <- readFile (src </> path)
     writeFile path bs
 
 dirSyncCompDef :: FilePath -> Comp FilePath () -> Comp FilePath () -> CompDef FilePath ()
-dirSyncCompDef src fileComp dirComp = mkCompDef "dirSyncComp" memCaching $ \path ->
+dirSyncCompDef src fileComp dirComp = mkCompDef "dirSyncComp" fullCaching $ \path ->
   do
     mkdir path
     contents <- listDir (src </> path)

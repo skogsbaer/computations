@@ -399,7 +399,7 @@ test_changesWithinRun =
     -> Comp String String
     -> CompDef () ()
   compCDef compA compB =
-    mkCompDef "CompC" memCaching $ \_ ->
+    mkCompDef "CompC" fullCaching $ \_ ->
       do
         Just _ <- evalComp compA ()
         Just _ <- evalComp compB "labReport1"
@@ -411,13 +411,13 @@ test_changesWithinRun =
     :: Comp () String
     -> CompDef String String
   compBDef compA =
-    mkCompDef "CompB" memCaching $ \_ ->
+    mkCompDef "CompB" fullCaching $ \_ ->
       do
         Just msg <- evalComp compA ()
         return (take 5 msg)
   compADef :: CompDef () String
   compADef =
-    mkCompDef "CompA" memCaching $ \_ ->
+    mkCompDef "CompA" fullCaching $ \_ ->
       do
         msg <- requestExt
         let junk = replicate (401 * 1024) '0'
@@ -441,7 +441,7 @@ test_revive =
     :: Comp () String
     -> Comp String String
     -> CompDef () ()
-  compCDef compA compB = mkCompDef "CompC" memCaching $ \_ -> do
+  compCDef compA compB = mkCompDef "CompC" fullCaching $ \_ -> do
     Just x <- evalComp compA ()
     Just y <- case x of
       "A" -> evalComp compB "patItem1"
@@ -450,9 +450,9 @@ test_revive =
     putReq (x ++ y)
     return ()
   compBDef :: CompDef String String
-  compBDef = mkCompDef "CompB" memCaching $ \_ -> requestExt
+  compBDef = mkCompDef "CompB" fullCaching $ \_ -> requestExt
   compADef :: CompDef () String
-  compADef = mkCompDef "CompA" memCaching $ \_ -> requestExt
+  compADef = mkCompDef "CompA" fullCaching $ \_ -> requestExt
   getComps =
     do
       compA <- defineComp (compADef)
