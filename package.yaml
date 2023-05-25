@@ -63,7 +63,7 @@ ghc-options:
   - -Wno-name-shadowing
   - -Wpartial-fields
   - -Wredundant-constraints
-  - -Werror
+  #- -Werror
 
 default-extensions:
   - BangPatterns

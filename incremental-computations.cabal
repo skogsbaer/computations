@@ -27,59 +27,60 @@ source-repository head
 
 library
   exposed-modules:
-      Control.IncComps.CompEngine
-      Control.IncComps.CompEngine.CacheBehaviors
-      Control.IncComps.CompEngine.CompDef
-      Control.IncComps.CompEngine.CompEval
-      Control.IncComps.CompEngine.CompFlow
-      Control.IncComps.CompEngine.CompFlowRegistry
-      Control.IncComps.CompEngine.CompSink
-      Control.IncComps.CompEngine.CompSrc
-      Control.IncComps.CompEngine.Core
-      Control.IncComps.CompEngine.Driver
-      Control.IncComps.CompEngine.Impl
-      Control.IncComps.CompEngine.Run
-      Control.IncComps.CompEngine.SifCache
-      Control.IncComps.CompEngine.SimpleStateIf
-      Control.IncComps.CompEngine.Tests.TestCompEngine
-      Control.IncComps.CompEngine.Tests.TestDynamicChanges
-      Control.IncComps.CompEngine.Tests.TestHelper
-      Control.IncComps.CompEngine.Tests.TestOutputs
-      Control.IncComps.CompEngine.Tests.TestRevive
-      Control.IncComps.CompEngine.Tests.TestRun
-      Control.IncComps.CompEngine.Tests.TestStateIf
-      Control.IncComps.CompEngine.Types
-      Control.IncComps.CompEngine.Utils.DepMap
-      Control.IncComps.CompEngine.Utils.OutputsMap
-      Control.IncComps.CompEngine.Utils.PriorityAgingQueue
-      Control.IncComps.CompEngine.Utils.VerList
-      Control.IncComps.FlowImpls.CompLogging
-      Control.IncComps.FlowImpls.FileSink
-      Control.IncComps.FlowImpls.FileSrc
-      Control.IncComps.FlowImpls.HashMapFlow
-      Control.IncComps.FlowImpls.IOSink
-      Control.IncComps.FlowImpls.SqliteSrc
-      Control.IncComps.FlowImpls.TimeSrc
-      Control.IncComps.Utils.Ansi
-      Control.IncComps.Utils.Clock
-      Control.IncComps.Utils.ConcUtils
-      Control.IncComps.Utils.DataSize
-      Control.IncComps.Utils.Fail
-      Control.IncComps.Utils.FileWatch
-      Control.IncComps.Utils.Hash
-      Control.IncComps.Utils.IOUtils
-      Control.IncComps.Utils.Logging
-      Control.IncComps.Utils.MultiMap
-      Control.IncComps.Utils.MultiSet
-      Control.IncComps.Utils.Parser
-      Control.IncComps.Utils.SourceLocation
-      Control.IncComps.Utils.SqliteUtils
-      Control.IncComps.Utils.StrictList
-      Control.IncComps.Utils.TimeSpan
-      Control.IncComps.Utils.TimeUtils
-      Control.IncComps.Utils.Tuple
-      Control.IncComps.Utils.Types
-      Control.IncComps.Utils.VirtualTime
+      Control.Computations.CompEngine
+      Control.Computations.CompEngine.CacheBehaviors
+      Control.Computations.CompEngine.CompDef
+      Control.Computations.CompEngine.CompEval
+      Control.Computations.CompEngine.CompFlow
+      Control.Computations.CompEngine.CompFlowRegistry
+      Control.Computations.CompEngine.CompSink
+      Control.Computations.CompEngine.CompSrc
+      Control.Computations.CompEngine.Core
+      Control.Computations.CompEngine.Driver
+      Control.Computations.CompEngine.Impl
+      Control.Computations.CompEngine.Run
+      Control.Computations.CompEngine.SifCache
+      Control.Computations.CompEngine.SimpleStateIf
+      Control.Computations.CompEngine.Tests.TestCompEngine
+      Control.Computations.CompEngine.Tests.TestDynamicChanges
+      Control.Computations.CompEngine.Tests.TestHelper
+      Control.Computations.CompEngine.Tests.TestOutputs
+      Control.Computations.CompEngine.Tests.TestRevive
+      Control.Computations.CompEngine.Tests.TestRun
+      Control.Computations.CompEngine.Tests.TestStateIf
+      Control.Computations.CompEngine.Types
+      Control.Computations.CompEngine.Utils.DepMap
+      Control.Computations.CompEngine.Utils.OutputsMap
+      Control.Computations.CompEngine.Utils.PriorityAgingQueue
+      Control.Computations.CompEngine.Utils.VerList
+      Control.Computations.FlowImpls.CompLogging
+      Control.Computations.FlowImpls.FileSink
+      Control.Computations.FlowImpls.FileSrc
+      Control.Computations.FlowImpls.FileStore
+      Control.Computations.FlowImpls.HashMapFlow
+      Control.Computations.FlowImpls.IOSink
+      Control.Computations.FlowImpls.SqliteSrc
+      Control.Computations.FlowImpls.TimeSrc
+      Control.Computations.Utils.Ansi
+      Control.Computations.Utils.Clock
+      Control.Computations.Utils.ConcUtils
+      Control.Computations.Utils.DataSize
+      Control.Computations.Utils.Fail
+      Control.Computations.Utils.FileWatch
+      Control.Computations.Utils.Hash
+      Control.Computations.Utils.IOUtils
+      Control.Computations.Utils.Logging
+      Control.Computations.Utils.MultiMap
+      Control.Computations.Utils.MultiSet
+      Control.Computations.Utils.Parser
+      Control.Computations.Utils.SourceLocation
+      Control.Computations.Utils.SqliteUtils
+      Control.Computations.Utils.StrictList
+      Control.Computations.Utils.TimeSpan
+      Control.Computations.Utils.TimeUtils
+      Control.Computations.Utils.Tuple
+      Control.Computations.Utils.Types
+      Control.Computations.Utils.VirtualTime
   other-modules:
       Paths_incremental_computations
   hs-source-dirs:
@@ -105,7 +106,7 @@ library
       TypeApplications
       TypeOperators
       ViewPatterns
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wno-name-shadowing -Wpartial-fields -Wredundant-constraints -Werror
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wno-name-shadowing -Wpartial-fields -Wredundant-constraints
   build-depends:
       HTF
     , QuickCheck
@@ -148,22 +149,23 @@ library
 executable incremental-computations-exe
   main-is: Main.hs
   other-modules:
-      Control.IncComps.Demos.DirSync.Main
-      Control.IncComps.Demos.DirSync.Tests
-      Control.IncComps.Demos.Hospital.CompDefs
-      Control.IncComps.Demos.Hospital.Config
-      Control.IncComps.Demos.Hospital.FakeDiagnoses
-      Control.IncComps.Demos.Hospital.FakeNames
-      Control.IncComps.Demos.Hospital.FakeWords
-      Control.IncComps.Demos.Hospital.Main
-      Control.IncComps.Demos.Hospital.MDoc
-      Control.IncComps.Demos.Hospital.PatDb
-      Control.IncComps.Demos.Hospital.PatNotesDb
-      Control.IncComps.Demos.Hospital.PatTypes
-      Control.IncComps.Demos.Hospital.Server
-      Control.IncComps.Demos.Hospital.Simulation
-      Control.IncComps.Demos.Main
-      Control.IncComps.Demos.Tests
+      Control.Computations.Demos.DirSync.Main
+      Control.Computations.Demos.DirSync.Tests
+      Control.Computations.Demos.Hospital.CompDefs
+      Control.Computations.Demos.Hospital.Config
+      Control.Computations.Demos.Hospital.FakeDiagnoses
+      Control.Computations.Demos.Hospital.FakeNames
+      Control.Computations.Demos.Hospital.FakeWords
+      Control.Computations.Demos.Hospital.Main
+      Control.Computations.Demos.Hospital.MDoc
+      Control.Computations.Demos.Hospital.PaperCompDefs
+      Control.Computations.Demos.Hospital.PatDb
+      Control.Computations.Demos.Hospital.PatNotesDb
+      Control.Computations.Demos.Hospital.PatTypes
+      Control.Computations.Demos.Hospital.Server
+      Control.Computations.Demos.Hospital.Simulation
+      Control.Computations.Demos.Main
+      Control.Computations.Demos.Tests
       Paths_incremental_computations
   hs-source-dirs:
       app
@@ -188,7 +190,7 @@ executable incremental-computations-exe
       TypeApplications
       TypeOperators
       ViewPatterns
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wno-name-shadowing -Wpartial-fields -Wredundant-constraints -Werror -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wno-name-shadowing -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       HTF
     , QuickCheck
@@ -263,7 +265,7 @@ test-suite incremental-computations-test
       TypeApplications
       TypeOperators
       ViewPatterns
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wno-name-shadowing -Wpartial-fields -Wredundant-constraints -Werror -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wno-name-shadowing -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       HTF
     , QuickCheck
