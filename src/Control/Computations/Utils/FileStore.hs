@@ -53,4 +53,4 @@ Clients reading a document in some version might get an error
 because the version might have been deleted. This is ok because
 the following events tell the client which version to read.
 -}
-module Control.Computations.FlowImpls.FileStore () where
+module Control.Computations.Utils.FileStore () where

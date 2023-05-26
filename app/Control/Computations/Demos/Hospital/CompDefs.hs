@@ -270,6 +270,7 @@ detailsCompDef getPatC getPatNotesC =
 cfgFileSrcId :: TypedCompSrcId FileSrc
 cfgFileSrcId = typedCompSrcId (Proxy @FileSrc) "cfgFileSrc"
 
+-- FIXME: use a file store as the sink for this demo
 jsonFileSinkId :: TypedCompSinkId FileSink
 jsonFileSinkId = typedCompSinkId (Proxy @FileSink) "jsonFileSink"
 
