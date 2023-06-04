@@ -73,4 +73,10 @@ You can also change data by hand. The sqlite database for patients is in
 `run-data/pats.sqlite`, the database for patient notes in
 `run-data/pat_notes.sqlite`.
 
+Start the webserver:
+
+```
+stack run -- --log-level info hospital-server --out run-data/output
+```
+
 A frontend is currently under development.

@@ -28,6 +28,7 @@ data Command
   | HospitalPipeline HospitalPipelineOptions
   | HospitalSimulation HospitalSimulationOptions
   | HospitalVisiblePats HospitalVisiblePatsOptions
+  | HospitalServer HospitalServerOptions
   | RunTests TestOptions
 
 data DirSyncOptions = DirSyncOptions
@@ -77,6 +78,11 @@ optionsParser = do
             ( HospitalVisiblePats
                 <$> info hospitalVisiblePatsCommand (progDesc "Display patients visible at a certain time")
             )
+          <> command
+            "hospital-server"
+            ( HospitalServer
+                <$> info hospitalServerCommand (progDesc "Start web server for hospital demo")
+            )
       )
   pure Options{..}
  where
@@ -89,7 +95,7 @@ optionsParser = do
   hospitalPipelineCommand = do
     hpo_rootDir <-
       dirOpt "root" $
-        "Root directory with subdirectory for JSON output. "
+        "Root directory with subdirectory for output. "
           ++ "Also holds sqlite databases for patient data and patient notes."
     hpo_configDir <- dirOpt "config" "Directory with configuration files"
     pure (HospitalPipelineOptions{..})
@@ -104,7 +110,7 @@ optionsParser = do
   hospitalVisiblePatsCommand = do
     hvo_rootDir <-
       dirOpt "root" $
-        "Root directory with subdirectory for JSON output. "
+        "Root directory with subdirectory for output. "
           ++ "Also holds sqlite databases for patient data and patient notes."
     hvo_configDir <- dirOpt "config" "Directory with configuration files"
     hvo_time <-
@@ -114,6 +120,10 @@ optionsParser = do
             <> help "Time in UTC at which visible patients should be computed"
         )
     pure (HospitalVisiblePatsOptions{..})
+  hospitalServerCommand :: Parser HospitalServerOptions
+  hospitalServerCommand = do
+    hso_outDir <- dirOpt "out" "Output directory"
+    pure (HospitalServerOptions{..})
   testCommand :: Parser TestOptions
   testCommand = pure TestOptions
 
@@ -136,6 +146,7 @@ main =
       HospitalPipeline opts -> hospitalPipeline opts
       HospitalSimulation opts -> hospitalSimulation opts
       HospitalVisiblePats opts -> visiblePats opts
+      HospitalServer opts -> hospitalServer opts
  where
   cmdlineParser =
     info

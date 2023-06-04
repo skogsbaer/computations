@@ -108,8 +108,8 @@ initFileStore cfg = do
       <> "  version INTEGER NOT NULL,"
       <> "  hash TEXT NULL"
       <> ");"
-      <> "CREATE UNIQUE INDEX docId_version ON file_store_objs(docId, version);"
-      <> "CREATE INDEX docId ON file_store_objs(docId);"
+      <> "CREATE UNIQUE INDEX IF NOT EXISTS docId_version ON file_store_objs(docId, version);"
+      <> "CREATE INDEX IF NOT EXISTS docId ON file_store_objs(docId);"
   queryAllStmt <-
     SqliteLib.prepare db $
       "SELECT DISTINCT docId FROM file_store_objs AS outer"

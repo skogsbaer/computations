@@ -7,6 +7,8 @@ module Control.Computations.Demos.Hospital.Main (
   hospitalSimulation,
   HospitalVisiblePatsOptions (..),
   visiblePats,
+  HospitalServerOptions (..),
+  hospitalServer,
 ) where
 
 ----------------------------------------
@@ -18,6 +20,7 @@ import Control.Computations.Demos.Hospital.Config
 import Control.Computations.Demos.Hospital.PatDb
 import Control.Computations.Demos.Hospital.PatNotesDb
 import Control.Computations.Demos.Hospital.PatTypes
+import Control.Computations.Demos.Hospital.Server
 import Control.Computations.Demos.Hospital.Simulation
 import Control.Computations.Utils.Logging
 import qualified Control.Computations.Utils.SqliteUtils as Sqlite
@@ -117,3 +120,11 @@ visiblePats opts = do
     if isIn
       then pure $ HashMap.insert (p_patId pat) pat patMap
       else pure $ HashMap.delete (p_patId pat) patMap
+
+data HospitalServerOptions = HospitalServerOptions
+  { hso_outDir :: FilePath
+  }
+
+hospitalServer :: HospitalServerOptions -> IO ()
+hospitalServer opts = do
+  serverMain (hso_outDir opts)

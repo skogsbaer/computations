@@ -15,17 +15,17 @@ import Control.Computations.Demos.Hospital.PatNotesDb
 import Control.Computations.Demos.Hospital.PatTypes
 import Control.Computations.FlowImpls.CompLogging
 import Control.Computations.FlowImpls.FileSrc
+import Control.Computations.FlowImpls.FileStoreSink
 import Control.Computations.FlowImpls.IOSink
 import Control.Computations.FlowImpls.SqliteSrc
 import Control.Computations.FlowImpls.TimeSrc
 import Control.Computations.Utils.Fail
+import Control.Computations.Utils.FileStore.Writer
 import qualified Control.Computations.Utils.StrictList as SL
 import Control.Computations.Utils.TimeSpan
 import Control.Computations.Utils.TimeUtils
 import Control.Computations.Utils.Tuple
 import Control.Computations.Utils.Types
-import Control.Computations.Utils.FileStore.Writer
-import Control.Computations.FlowImpls.FileStoreSink
 
 ----------------------------------------
 -- EXTERNAL

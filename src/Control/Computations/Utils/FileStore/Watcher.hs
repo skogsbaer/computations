@@ -8,6 +8,7 @@ module Control.Computations.Utils.FileStore.Watcher (
   withFileStoreWatcher,
   waitForFileStoreChanges,
   loadDoc,
+  objFile,
   module Control.Computations.Utils.FileStore.Types,
   htf_thisModulesTests,
 ) where
@@ -181,3 +182,6 @@ waitForFileStoreChanges fsw = do
   when (isEmptyFileStoreChanges changes) retry
   writeTVar (fsw_changesVar fsw) emptyFileStoreChanges
   pure changes
+
+objFile :: FilePath -> DocId -> Version -> FilePath
+objFile = outputFile

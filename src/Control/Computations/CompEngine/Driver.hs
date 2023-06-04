@@ -2,7 +2,7 @@ module Control.Computations.CompEngine.Driver (
   RunStats (..),
   compDriver,
   regSrc,
-  regSink
+  regSink,
 ) where
 
 ----------------------------------------
@@ -11,8 +11,8 @@ module Control.Computations.CompEngine.Driver (
 
 import Control.Computations.CompEngine.CompDef
 import Control.Computations.CompEngine.CompFlowRegistry
-import Control.Computations.CompEngine.CompSrc
 import Control.Computations.CompEngine.CompSink
+import Control.Computations.CompEngine.CompSrc
 import Control.Computations.CompEngine.Core
 import Control.Computations.CompEngine.Run
 import Control.Computations.CompEngine.Types
