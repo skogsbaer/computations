@@ -93,7 +93,7 @@ insertPat db pat = do
   let bs = BSL.toStrict (J.encode pat)
       sql = "INSERT INTO pat_msgs (pat_id, msg) VALUES (:id, :msg)"
   Sqlite.withStatement db sql $ \stmt ->
-    Sqlite.insert
+    Sqlite.execStmt
       stmt
       [ (":id", Sqlite.SQLText (unPatId (p_patId pat)))
       , (":msg", Sqlite.SQLBlob bs)

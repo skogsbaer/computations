@@ -3,6 +3,7 @@
 module Control.Computations.Utils.Hash (
   Hash128 (..),
   largeHash128,
+  hashToHexText,
 )
 where
 

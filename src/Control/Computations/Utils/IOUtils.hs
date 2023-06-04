@@ -13,6 +13,7 @@ module Control.Computations.Utils.IOUtils (
   CanonPath,
   unCanonPath,
   canonPath,
+  writeFileAtomically,
   htf_thisModulesTests,
 ) where
 
@@ -168,3 +169,9 @@ canonPath p =
   do
     cp <- Dir.canonicalizePath p
     pure (CanonPath cp)
+
+writeFileAtomically :: FilePath -> BS.ByteString -> IO ()
+writeFileAtomically p bs =
+  withTempFile (takeDirectory p) "IncComps" $ \tmp h -> do
+    BS.hPutStr h bs
+    renameFile tmp p

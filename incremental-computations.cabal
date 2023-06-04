@@ -56,6 +56,7 @@ library
       Control.Computations.FlowImpls.CompLogging
       Control.Computations.FlowImpls.FileSink
       Control.Computations.FlowImpls.FileSrc
+      Control.Computations.FlowImpls.FileStoreSink
       Control.Computations.FlowImpls.HashMapFlow
       Control.Computations.FlowImpls.IOSink
       Control.Computations.FlowImpls.SqliteSrc
@@ -65,7 +66,11 @@ library
       Control.Computations.Utils.ConcUtils
       Control.Computations.Utils.DataSize
       Control.Computations.Utils.Fail
-      Control.Computations.Utils.FileStore
+      Control.Computations.Utils.FileStore.Intern
+      Control.Computations.Utils.FileStore.Tests
+      Control.Computations.Utils.FileStore.Types
+      Control.Computations.Utils.FileStore.Watcher
+      Control.Computations.Utils.FileStore.Writer
       Control.Computations.Utils.FileWatch
       Control.Computations.Utils.Hash
       Control.Computations.Utils.IOUtils
@@ -106,7 +111,7 @@ library
       TypeApplications
       TypeOperators
       ViewPatterns
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wno-name-shadowing -Wpartial-fields -Wredundant-constraints
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wno-name-shadowing -Wpartial-fields -Wredundant-constraints -Werror
   build-depends:
       HTF
     , QuickCheck
@@ -189,7 +194,7 @@ executable incremental-computations-exe
       TypeApplications
       TypeOperators
       ViewPatterns
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wno-name-shadowing -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wno-name-shadowing -Wpartial-fields -Wredundant-constraints -Werror -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       HTF
     , QuickCheck
@@ -264,7 +269,7 @@ test-suite incremental-computations-test
       TypeApplications
       TypeOperators
       ViewPatterns
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wno-name-shadowing -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wno-name-shadowing -Wpartial-fields -Wredundant-constraints -Werror -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       HTF
     , QuickCheck

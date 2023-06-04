@@ -7,16 +7,18 @@ module Control.Computations.Utils.SqliteUtils (
   SQLRow,
   SQLData (..),
   Sqlite.Database,
+  Sqlite.Statement,
   columnNames,
   exec,
   query,
-  insert,
+  execStmt,
   withStatement,
   retryIfBusy,
   getColumnValue,
   initSqliteDb,
   closeSqliteDb,
   withSqliteDb,
+  withTransaction,
 ) where
 
 ----------------------------------------
@@ -141,12 +143,12 @@ query stmt bindings =
     rows <- retryIfBusy "query" (collectRows stmt) `finally` (Sqlite.reset stmt >> Sqlite.clearBindings stmt)
     pure rows
 
-insert :: Sqlite.Statement -> [(T.Text, SQLData)] -> IO ()
-insert stmt bindings = do
+execStmt :: Sqlite.Statement -> [(T.Text, SQLData)] -> IO ()
+execStmt stmt bindings = do
   res <- query stmt bindings
   case res of
     [] -> pure ()
-    _ -> fail ("unexpected result for insert: " ++ show res)
+    _ -> fail ("unexpected result for execStmt: " ++ show res)
 
 withStatement :: Sqlite.Database -> T.Text -> (Sqlite.Statement -> IO a) -> IO a
 withStatement db sql action =
@@ -185,3 +187,10 @@ withSqliteDb path action =
     (initSqliteDb path)
     closeSqliteDb
     action
+
+withTransaction :: Sqlite.Database -> IO a -> IO a
+withTransaction db action =
+  bracketOnError
+    (exec db "BEGIN TRANSACTION;")
+    (\_ -> exec db "ROLLBACK;")
+    (\_ -> action >>= \x -> exec db "COMMIT;" >> pure x)

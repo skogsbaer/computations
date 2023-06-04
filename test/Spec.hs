@@ -21,6 +21,7 @@ import {-@ HTF_TESTS @-} Control.Computations.FlowImpls.SqliteSrc
 import {-@ HTF_TESTS @-} Control.Computations.FlowImpls.TimeSrc
 import {-@ HTF_TESTS @-} Control.Computations.Utils.DataSize
 import {-@ HTF_TESTS @-} Control.Computations.Utils.Fail
+import {-@ HTF_TESTS @-} Control.Computations.Utils.FileStore.Tests
 import {-@ HTF_TESTS @-} Control.Computations.Utils.FileWatch
 import {-@ HTF_TESTS @-} Control.Computations.Utils.IOUtils
 import {-@ HTF_TESTS @-} Control.Computations.Utils.MultiMap
