@@ -14,7 +14,6 @@ import Control.Computations.Demos.Hospital.PatDb
 import Control.Computations.Demos.Hospital.PatNotesDb
 import Control.Computations.Demos.Hospital.PatTypes
 import Control.Computations.FlowImpls.CompLogging
-import Control.Computations.FlowImpls.FileSink
 import Control.Computations.FlowImpls.FileSrc
 import Control.Computations.FlowImpls.IOSink
 import Control.Computations.FlowImpls.SqliteSrc
@@ -25,6 +24,8 @@ import Control.Computations.Utils.TimeSpan
 import Control.Computations.Utils.TimeUtils
 import Control.Computations.Utils.Tuple
 import Control.Computations.Utils.Types
+import Control.Computations.Utils.FileStore.Writer
+import Control.Computations.FlowImpls.FileStoreSink
 
 ----------------------------------------
 -- EXTERNAL
@@ -169,18 +170,18 @@ data MDocId
   = MDocIdRoot
   | MDocIdPat PatId
 
-publishMDoc :: MDocId -> MDoc -> CompM URL
+publishMDoc :: MDocId -> MDoc -> CompM DocId
 publishMDoc id md =
   do
     let bs = BSL.toStrict (encode md)
-        fp =
+        docId =
           case id of
-            MDocIdRoot -> "index.json"
-            MDocIdPat (PatId t) -> "pat_" <> t <> ".json"
-    writeJsonFile (T.unpack fp) bs
-    pure (URL fp)
+            MDocIdRoot -> mkDocId "index"
+            MDocIdPat (PatId t) -> mkDocId ("pat_" <> t)
+    void $ compSinkReq fileStoreSinkId (WriteDoc docId bs)
+    pure docId
 
-overviewCompDef :: Comp () PatMap -> Comp () PatSet -> Comp PatId URL -> CompDef () ()
+overviewCompDef :: Comp () PatMap -> Comp () PatSet -> Comp PatId DocId -> CompDef () ()
 overviewCompDef patMapC recentPatsC patC =
   mkCompDef "overviewComp" hashCaching $ \() ->
     do
@@ -234,7 +235,7 @@ patNotesCompDef =
   mkCompDef "patNotesComp" fullCaching $ \patId ->
     patNotes patNotesSrcId patId
 
-detailsCompDef :: Comp PatId Pat -> Comp PatId (HashSet PatNote) -> CompDef PatId URL
+detailsCompDef :: Comp PatId Pat -> Comp PatId (HashSet PatNote) -> CompDef PatId DocId
 detailsCompDef getPatC getPatNotesC =
   mkCompDef "detailsComp" fullCaching $ \patId ->
     do
@@ -270,9 +271,8 @@ detailsCompDef getPatC getPatNotesC =
 cfgFileSrcId :: TypedCompSrcId FileSrc
 cfgFileSrcId = typedCompSrcId (Proxy @FileSrc) "cfgFileSrc"
 
--- FIXME: use a file store as the sink for this demo
-jsonFileSinkId :: TypedCompSinkId FileSink
-jsonFileSinkId = typedCompSinkId (Proxy @FileSink) "jsonFileSink"
+fileStoreSinkId :: TypedCompSinkId FileStoreSink
+fileStoreSinkId = typedCompSinkId (Proxy @FileStoreSink) "fileStoreSink"
 
 patMsgsSrcId :: TypedCompSrcId SqliteSrc
 patMsgsSrcId = typedCompSrcId (Proxy @SqliteSrc) "patMsgsSrc"
@@ -282,9 +282,6 @@ patNotesSrcId = typedCompSrcId (Proxy @SqliteSrc) "patNotesSrc"
 
 readConfigFile :: FilePath -> CompM BS.ByteString
 readConfigFile p = compSrcReq cfgFileSrcId (ReadFile p)
-
-writeJsonFile :: FilePath -> BS.ByteString -> CompM ()
-writeJsonFile p bs = compSinkReq jsonFileSinkId (WriteFile p bs)
 
 defineComps :: TimeIntervalType -> CompDefM (Comp () ())
 defineComps timeUpdateInterval = do
@@ -316,11 +313,11 @@ withCompFlows paths reg action = do
           withSqliteSrc patNotesSrcCfg $
             regSrc reg $
               withDefaultTimeSrc $
-                regSrc reg $ do
-                  fileSink <- makeFileSink (instTextFromTypedCompSinkId jsonFileSinkId) (hp_outDir paths)
-                  registerCompSink reg fileSink
-                  registerCompSink reg ioSink
-                  action
+                regSrc reg $
+                  withFileStoreSink (instTextFromTypedCompSinkId fileStoreSinkId) fileStoreCfg $
+                    regSink reg $ do
+                      registerCompSink reg ioSink
+                      action
  where
   dbPollInterval = milliseconds 100
   cfgSrcCfg =
@@ -331,3 +328,5 @@ withCompFlows paths reg action = do
     patSqliteSrcCfg (instanceIdFromTypedCompSrcId patMsgsSrcId) (hp_patDb paths) dbPollInterval
   patNotesSrcCfg =
     patNotesSqliteSrcCfg (instanceIdFromTypedCompSrcId patNotesSrcId) (hp_patNotesDb paths) dbPollInterval
+  fileStoreCfg =
+    FileStoreCfg (hp_outDir paths)

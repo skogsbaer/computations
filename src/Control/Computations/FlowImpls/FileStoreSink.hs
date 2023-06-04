@@ -3,6 +3,9 @@
 module Control.Computations.FlowImpls.FileStoreSink (
   FileStoreSinkReq (..),
   FileStoreSink,
+  DocId,
+  mkDocId,
+  unDocId,
   withFileStoreSink,
 ) where
 

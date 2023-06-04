@@ -2,6 +2,7 @@ module Control.Computations.CompEngine.Driver (
   RunStats (..),
   compDriver,
   regSrc,
+  regSink
 ) where
 
 ----------------------------------------
@@ -11,6 +12,7 @@ module Control.Computations.CompEngine.Driver (
 import Control.Computations.CompEngine.CompDef
 import Control.Computations.CompEngine.CompFlowRegistry
 import Control.Computations.CompEngine.CompSrc
+import Control.Computations.CompEngine.CompSink
 import Control.Computations.CompEngine.Core
 import Control.Computations.CompEngine.Run
 import Control.Computations.CompEngine.Types
@@ -78,4 +80,9 @@ compDriver runVar withRegisteredFlows defineComps startVal = do
 regSrc :: CompSrc s => CompFlowRegistry -> IO a -> s -> IO a
 regSrc reg action src = do
   registerCompSrc reg src
+  action
+
+regSink :: CompSink s => CompFlowRegistry -> IO a -> s -> IO a
+regSink reg action sink = do
+  registerCompSink reg sink
   action

@@ -1,5 +1,6 @@
 module Control.Computations.Utils.FileStore.Types (
   DocId (..),
+  mkDocId,
   ObjId (..),
   Version,
   mkVersion,
@@ -17,13 +18,18 @@ module Control.Computations.Utils.FileStore.Types (
 -- EXTERNAL
 ----------------------------------------
 import Data.Hashable
+import Data.LargeHashable
+import Data.Aeson
 import Data.Int
 import qualified Data.Text as T
 import GHC.Generics (Generic)
 
 -- | The ID of a document. The text must only contain characters that are valid in filenames.
 newtype DocId = DocId {unDocId :: T.Text}
-  deriving (Eq, Hashable)
+  deriving newtype (Eq, Hashable, LargeHashable, ToJSON)
+
+mkDocId :: T.Text -> DocId
+mkDocId = DocId
 
 instance Show DocId where
   showsPrec _ (DocId t) = showString (T.unpack t)

@@ -3,7 +3,6 @@ module Control.Computations.Demos.Hospital.MDoc (
   MSection (..),
   MContent (..),
   MList (..),
-  URL (..),
   MListItem (..),
 ) where
 
@@ -11,6 +10,7 @@ module Control.Computations.Demos.Hospital.MDoc (
 -- LOCAL
 ----------------------------------------
 import Control.Computations.Utils.Types
+import Control.Computations.Utils.FileStore.Types
 
 ----------------------------------------
 -- EXTERNAL
@@ -18,8 +18,6 @@ import Control.Computations.Utils.Types
 
 import Control.Computations.Utils.StrictList
 import Data.Aeson
-import Data.Hashable
-import Data.LargeHashable
 import qualified Data.Text as T
 import GHC.Generics (Generic)
 
@@ -56,11 +54,8 @@ data MList = MList
 instance ToJSON MList where
   toJSON (MList l) = toJSON l
 
-newtype URL = URL T.Text
-  deriving newtype (Eq, Show, Hashable, LargeHashable, ToJSON)
-
 data MListItem = MListItem
-  { ml_url :: Option URL
+  { ml_docId :: Option DocId
   , ml_text :: T.Text
   }
   deriving (Generic)
