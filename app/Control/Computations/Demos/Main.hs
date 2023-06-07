@@ -123,6 +123,7 @@ optionsParser = do
   hospitalServerCommand :: Parser HospitalServerOptions
   hospitalServerCommand = do
     hso_outDir <- dirOpt "out" "Output directory"
+    hso_webappDir <- dirOpt "web" "Web application directory (usually webapp)"
     pure (HospitalServerOptions{..})
   testCommand :: Parser TestOptions
   testCommand = pure TestOptions

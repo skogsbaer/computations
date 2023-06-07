@@ -123,8 +123,9 @@ visiblePats opts = do
 
 data HospitalServerOptions = HospitalServerOptions
   { hso_outDir :: FilePath
+  , hso_webappDir :: FilePath
   }
 
 hospitalServer :: HospitalServerOptions -> IO ()
 hospitalServer opts = do
-  serverMain (hso_outDir opts)
+  serverMain (hso_outDir opts) (hso_webappDir opts)

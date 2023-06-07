@@ -65,6 +65,7 @@ library
       Control.Computations.Utils.Clock
       Control.Computations.Utils.ConcUtils
       Control.Computations.Utils.DataSize
+      Control.Computations.Utils.Dispatcher
       Control.Computations.Utils.Fail
       Control.Computations.Utils.FileStore.Intern
       Control.Computations.Utils.FileStore.Tests

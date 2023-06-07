@@ -36,8 +36,14 @@ instance Show DocId where
   showsPrec _ (DocId t) = showString (T.unpack t)
 
 newtype Version = Version {unVersion :: Int64}
-  deriving (Eq, Ord, Hashable, Show)
+  deriving (Eq, Ord, Hashable)
   deriving newtype (ToJSON)
+
+instance Show Version where
+  showsPrec p (Version v) =
+    showParen (p > 10) $
+    showString "Version " .
+    shows v
 
 mkVersion :: Int64 -> Version
 mkVersion = Version

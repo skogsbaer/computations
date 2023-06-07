@@ -76,7 +76,7 @@ You can also change data by hand. The sqlite database for patients is in
 Start the webserver:
 
 ```
-stack run -- --log-level info hospital-server --out run-data/output
+stack run -- --log-level info hospital-server --out run-data/output --web webapp
 ```
 
 A frontend is currently under development.
