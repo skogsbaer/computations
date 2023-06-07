@@ -79,4 +79,4 @@ Start the webserver:
 stack run -- --log-level info hospital-server --out run-data/output --web webapp
 ```
 
-A frontend is currently under development.
+Then point your browser to http://localhost:8080

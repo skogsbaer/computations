@@ -42,8 +42,8 @@ newtype Version = Version {unVersion :: Int64}
 instance Show Version where
   showsPrec p (Version v) =
     showParen (p > 10) $
-    showString "Version " .
-    shows v
+      showString "Version "
+        . shows v
 
 mkVersion :: Int64 -> Version
 mkVersion = Version
