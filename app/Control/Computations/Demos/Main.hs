@@ -8,6 +8,7 @@ module Control.Computations.Demos.Main (main) where
 ----------------------------------------
 import Control.Computations.Demos.DirSync.Main
 import Control.Computations.Demos.Hospital.Main
+import Control.Computations.Demos.Simple.Main
 import Control.Computations.Demos.Tests
 import Control.Computations.Utils.Logging
 
@@ -25,6 +26,7 @@ data Options = Options
 
 data Command
   = DirSync DirSyncOptions
+  | Simple SimpleOptions
   | HospitalPipeline HospitalPipelineOptions
   | HospitalSimulation HospitalSimulationOptions
   | HospitalVisiblePats HospitalVisiblePatsOptions
@@ -35,6 +37,8 @@ data DirSyncOptions = DirSyncOptions
   { dso_sourceDir :: FilePath
   , dso_targetDir :: FilePath
   }
+
+data SimpleOptions = SimpleOptions --empty for now
 
 data TestOptions = TestOptions -- empty for now
 
@@ -57,6 +61,13 @@ optionsParser = do
               <$> info
                 syncCommand
                 (progDesc "Demo syncing a directory to some other directory")
+          )
+          <> command
+          "simple"
+          ( Simple
+              <$> info
+                simpleCommand
+                (progDesc "Simple demo counting lines in files")
           )
           <> command
             "test"
@@ -91,6 +102,8 @@ optionsParser = do
     dso_sourceDir <- dirOpt "source" "Source directory"
     dso_targetDir <- dirOpt "target" "Target directory"
     pure DirSyncOptions{..}
+  simpleCommand :: Parser SimpleOptions
+  simpleCommand = pure SimpleOptions
   hospitalPipelineCommand :: Parser HospitalPipelineOptions
   hospitalPipelineCommand = do
     hpo_rootDir <-
@@ -143,6 +156,7 @@ main =
     setupLogging (opt_logLevel opts)
     case opt_command opts of
       DirSync syncOpts -> syncDirs (dso_sourceDir syncOpts) (dso_targetDir syncOpts)
+      Simple _ -> simpleMain
       RunTests _ -> testMain
       HospitalPipeline opts -> hospitalPipeline opts
       HospitalSimulation opts -> hospitalSimulation opts

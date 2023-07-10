@@ -48,6 +48,7 @@ import Test.Framework
 
 data FileSrcReq a where
   ReadFile :: FilePath -> FileSrcReq BS.ByteString
+  ReadTextFile :: FilePath -> FileSrcReq String
   ListDir :: FilePath -> FileSrcReq (HashSet DirEntry)
 
 data DirEntry = DirEntry
@@ -128,6 +129,7 @@ executeImpl
 executeImpl fcs req =
   case req of
     ReadFile (qualify -> path) -> doWork path BS.readFile
+    ReadTextFile (qualify -> path) -> doWork path readFile
     ListDir (qualify -> path) -> doWork path $ \p -> do
       l <- listDirectory p
       l2 <- forM l $ \name ->

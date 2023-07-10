@@ -170,6 +170,7 @@ executable incremental-computations-exe
       Control.Computations.Demos.Hospital.Server
       Control.Computations.Demos.Hospital.Simulation
       Control.Computations.Demos.Main
+      Control.Computations.Demos.Simple.Main
       Control.Computations.Demos.Tests
       Paths_incremental_computations
   hs-source-dirs:

@@ -28,6 +28,7 @@ import Data.HashSet (HashSet)
 import qualified Data.HashSet as HashSet
 import Data.Hashable
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import GHC.Generics (Generic)
 import System.Directory
 import System.FilePath
@@ -38,6 +39,7 @@ import Test.Framework
 -}
 data FileSinkReq a where
   WriteFile :: FilePath -> BS.ByteString -> FileSinkReq ()
+  WriteTextFile :: FilePath -> String -> FileSinkReq ()
   MakeDirs :: FilePath -> FileSinkReq ()
 
 instance Show (FileSinkReq a) where
@@ -50,6 +52,12 @@ instance Show (FileSinkReq a) where
             . showString " <"
             . shows (BS.length bs)
             . showString " bytes>"
+        WriteTextFile p t ->
+          showString "WriteTextFile "
+            . showString p
+            . showString " <"
+            . shows (length t)
+            . showString " chars>"
         MakeDirs p ->
           showString "MakeDirs "
             . showString p
@@ -134,6 +142,8 @@ executeImpl sink req =
           res <- failForIOException $ BS.writeFile p bs
           logIfFailure res
           pure (HashSet.singleton (FileSinkOut out File), res)
+      WriteTextFile p s ->
+         executeImpl sink (WriteFile p (T.encodeUtf8 (T.pack s)))
       MakeDirs p' ->
         do
           (p, out) <- qualifyPath sink p'
