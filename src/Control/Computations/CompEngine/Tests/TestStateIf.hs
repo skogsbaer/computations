@@ -398,27 +398,27 @@ fooComp, barComp, rootComp :: Comp Int BS.ByteString
 -- the following is valid Haskell code. What. (http://tvtropes.org/pmwiki/pmwiki.php/Main/FlatWhat)
 (_, (fooComp, barComp, rootComp)) =
   failToError $
-    runCompDefM $
+    runCompWireM $
       do
-        fooComp <- defineComp fooCompDef
-        barComp <- defineComp (barCompDef fooComp)
-        rootComp <- defineComp (rootCompDef fooComp barComp)
+        fooComp <- wireComp fooCompDef
+        barComp <- wireComp (barCompDef fooComp)
+        rootComp <- wireComp (rootCompDef fooComp barComp)
         return (fooComp, barComp, rootComp)
 
 cComp, l1Comp, l2Comp, rComp :: Comp Int BS.ByteString
 (_, (cComp, l1Comp, l2Comp, rComp)) =
   failToError $
-    runCompDefM $
+    runCompWireM $
       do
-        cComp <- defineComp cCompDef
-        l1Comp <- defineComp (lCompDef "l1" cComp)
-        l2Comp <- defineComp (lCompDef "l2" cComp)
-        rComp <- defineComp (rCompDef cComp l1Comp l2Comp)
+        cComp <- wireComp cCompDef
+        l1Comp <- wireComp (lCompDef "l1" cComp)
+        l2Comp <- wireComp (lCompDef "l2" cComp)
+        rComp <- wireComp (rCompDef cComp l1Comp l2Comp)
         return (cComp, l1Comp, l2Comp, rComp)
 
 cCompDef :: CompDef Int BS.ByteString
 cCompDef =
-  mkCompDef "c" fullCaching $ \(_ :: Int) ->
+  defineComp "c" fullCaching $ \(_ :: Int) ->
     return ""
 
 lCompDef
@@ -427,7 +427,7 @@ lCompDef
   -> Comp Int r
   -> CompDef Int r
 lCompDef n cComp =
-  mkCompDef n fullCaching $ \(p :: Int) ->
+  defineComp n fullCaching $ \(p :: Int) ->
     do
       Just x <- evalComp cComp p
       return x
@@ -438,7 +438,7 @@ rCompDef
   -> Comp Int BS.ByteString
   -> CompDef Int BS.ByteString
 rCompDef cComp l1Comp l2Comp =
-  mkCompDef "r" fullCaching $ \(p :: Int) ->
+  defineComp "r" fullCaching $ \(p :: Int) ->
     do
       Just x <- evalComp cComp p
       Just y <- evalComp l1Comp p
@@ -447,7 +447,7 @@ rCompDef cComp l1Comp l2Comp =
 
 fooCompDef :: CompDef Int BS.ByteString
 fooCompDef =
-  mkCompDef "foo" fullCaching $ \(_ :: Int) ->
+  defineComp "foo" fullCaching $ \(_ :: Int) ->
     return ""
 
 barCompDef
@@ -455,7 +455,7 @@ barCompDef
   => Comp Int r
   -> CompDef Int r
 barCompDef foo =
-  mkCompDef "bar" fullCaching $ \(p :: Int) ->
+  defineComp "bar" fullCaching $ \(p :: Int) ->
     do
       Just x <- evalComp foo p
       return x
@@ -465,7 +465,7 @@ rootCompDef
   -> Comp Int BS.ByteString
   -> CompDef Int BS.ByteString
 rootCompDef fooComp barComp =
-  mkCompDef "root" fullCaching $ \(p :: Int) ->
+  defineComp "root" fullCaching $ \(p :: Int) ->
     do
       Just x <- evalComp fooComp p
       Just y <- evalComp barComp p

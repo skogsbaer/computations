@@ -31,9 +31,9 @@ test_dontDeleteAfterRevival = runCompEngineTest compDefs shouldStartNextRun () d
  where
   compDefs =
     do
-      writeComp <- defineComp writeCompDef
-      intermediateComp <- defineComp (intermediateCompDef writeComp)
-      defineComp (mainCompDef writeComp intermediateComp)
+      writeComp <- wireComp writeCompDef
+      intermediateComp <- wireComp (intermediateCompDef writeComp)
+      wireComp (mainCompDef writeComp intermediateComp)
    where
     isYes :: Maybe BS.ByteString -> Bool
     isYes = (Just "yes" ==)
@@ -42,7 +42,7 @@ test_dontDeleteAfterRevival = runCompEngineTest compDefs shouldStartNextRun () d
       -> Comp () ()
       -> CompDef () ()
     mainCompDef writeComp intermediateComp =
-      mkCompDef "main" inMemoryShowCaching $ \() ->
+      defineComp "main" inMemoryShowCaching $ \() ->
         do
           doSecond <- liftM isYes (get "second")
           evalCompOrFail intermediateComp ()
@@ -50,13 +50,13 @@ test_dontDeleteAfterRevival = runCompEngineTest compDefs shouldStartNextRun () d
           return ()
     intermediateCompDef :: Comp () () -> CompDef () ()
     intermediateCompDef writeComp =
-      mkCompDef "intermediate" inMemoryShowCaching $ \() ->
+      defineComp "intermediate" inMemoryShowCaching $ \() ->
         do
           doFirst <- liftM isYes (get "first")
           when doFirst (evalCompOrFail writeComp ())
     writeCompDef :: CompDef () ()
     writeCompDef =
-      mkCompDef "write" inMemoryShowCaching $ \() ->
+      defineComp "write" inMemoryShowCaching $ \() ->
         put "foo" "bar"
   doTest hmf =
     do

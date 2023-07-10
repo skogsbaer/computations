@@ -1,6 +1,7 @@
 module Control.Computations.CompEngine.Driver (
   RunStats (..),
   compDriver,
+  compDriver',
   regSrc,
   regSink,
 ) where
@@ -36,12 +37,22 @@ data RunStats = RunStats
 
 compDriver
   :: (IsCompParam p, IsCompResult r)
-  => TVar (Option RunStats)
-  -> (CompFlowRegistry -> IO () -> IO a)
-  -> CompDefM (Comp p r)
+  => (CompFlowRegistry -> IO () -> IO ())
+  -> CompWireM (Comp p r)
   -> p
-  -> IO a
-compDriver runVar withRegisteredFlows defineComps startVal = do
+  -> IO ()
+compDriver withRegisteredFlows wireComps startVal = do
+  runVar <- newTVarIO None
+  compDriver' runVar withRegisteredFlows wireComps startVal
+
+compDriver'
+  :: (IsCompParam p, IsCompResult r)
+  => TVar (Option RunStats)
+  -> (CompFlowRegistry -> IO () -> IO ())
+  -> CompWireM (Comp p r)
+  -> p
+  -> IO ()
+compDriver' runVar withRegisteredFlows wireComps startVal = do
   reg <- newCompFlowRegistry
   withStateIf $ \stateIf -> withRegisteredFlows reg $ do
     let ifs =
@@ -72,9 +83,9 @@ compDriver runVar withRegisteredFlows defineComps startVal = do
       atomically $ writeTVar runVar (Some stats)
       pure (startNextRun, state)
   rootComps = (failInM . fmap snd) $
-    runCompDefM $
+    runCompWireM $
       do
-        c <- defineComps
+        c <- wireComps
         pure ([wrapCompAp (mkCompAp c startVal)])
 
 regSrc :: CompSrc s => CompFlowRegistry -> IO a -> s -> IO a

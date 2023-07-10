@@ -1,6 +1,6 @@
 module Control.Computations.Demos.Hospital.CompDefs (
   HospitalPaths (..),
-  defineComps,
+  wireComps,
   withCompFlows,
 ) where
 
@@ -52,7 +52,7 @@ type PatSet = HashSet Pat
 
 getCfgCompDef :: CompDef () Config
 getCfgCompDef =
-  mkIncCompDef "getCfgComp" defaultConfig $ \() prevCfg ->
+  defineIncComp "getCfgComp" defaultConfig $ \() prevCfg ->
     do
       bs <- readConfigFile fname
       case parseConfig bs of
@@ -97,7 +97,7 @@ maxTimeToKeepAfterDischarge = days 1
 -}
 activePatsCompDef :: TimeIntervalType -> CompDef () (Option PatMsgKey :!: PatMap)
 activePatsCompDef interval =
-  mkIncCompDef "activePatsComp" (None :!: HashMap.empty) $ \() acc@(mPatMsgKey :!: _) ->
+  defineIncComp "activePatsComp" (None :!: HashMap.empty) $ \() acc@(mPatMsgKey :!: _) ->
     do
       msgs <- patMsgsSince patMsgsSrcId mPatMsgKey
       let (newPatMsgKey :!: newMap) = updatePats acc msgs
@@ -126,7 +126,7 @@ admissionDateTooFarInTheFuture now ts pat =
 visiblePatsCompDef
   :: TimeIntervalType -> Comp () Config -> Comp () (Option PatMsgKey :!: PatMap) -> CompDef () PatMap
 visiblePatsCompDef interval cfgC activePatsC =
-  mkCompDef "visiblePatsComp" fullCaching $ \() ->
+  defineComp "visiblePatsComp" fullCaching $ \() ->
     do
       (_ :!: patMap) <- evalCompOrFail activePatsC ()
       now <- compGetTime interval
@@ -139,7 +139,7 @@ visiblePatsCompDef interval cfgC activePatsC =
 
 recentPatsCompDef :: TimeIntervalType -> Comp () Config -> Comp () PatMap -> CompDef () PatSet
 recentPatsCompDef interval cfgC activePatsC =
-  mkCompDef "recentPatsComp" fullCaching $ \() ->
+  defineComp "recentPatsComp" fullCaching $ \() ->
     do
       cfg <- evalCompOrFail cfgC ()
       patMap <- evalCompOrFail activePatsC ()
@@ -183,7 +183,7 @@ publishMDoc id md =
 
 overviewCompDef :: Comp () PatMap -> Comp () PatSet -> Comp PatId DocId -> CompDef () ()
 overviewCompDef patMapC recentPatsC patC =
-  mkCompDef "overviewComp" hashCaching $ \() ->
+  defineComp "overviewComp" hashCaching $ \() ->
     do
       pm <- evalCompOrFail patMapC ()
       recentPats <- evalCompOrFail recentPatsC ()
@@ -223,7 +223,7 @@ overviewCompDef patMapC recentPatsC patC =
 
 getPatCompDef :: Comp () PatMap -> CompDef PatId Pat
 getPatCompDef patMapC =
-  mkCompDef "getPatComp" fullCaching $ \patId ->
+  defineComp "getPatComp" fullCaching $ \patId ->
     do
       pm <- evalCompOrFail patMapC ()
       case HashMap.lookup patId pm of
@@ -232,12 +232,12 @@ getPatCompDef patMapC =
 
 patNotesCompDef :: CompDef PatId (HashSet PatNote)
 patNotesCompDef =
-  mkCompDef "patNotesComp" fullCaching $ \patId ->
+  defineComp "patNotesComp" fullCaching $ \patId ->
     patNotes patNotesSrcId patId
 
 detailsCompDef :: Comp PatId Pat -> Comp PatId (HashSet PatNote) -> CompDef PatId DocId
 detailsCompDef getPatC getPatNotesC =
-  mkCompDef "detailsComp" fullCaching $ \patId ->
+  defineComp "detailsComp" fullCaching $ \patId ->
     do
       pat <- evalCompOrFail getPatC patId
       notes <- evalCompWithDefault getPatNotesC patId HashSet.empty
@@ -283,16 +283,16 @@ patNotesSrcId = typedCompSrcId (Proxy @SqliteSrc) "patNotesSrc"
 readConfigFile :: FilePath -> CompM BS.ByteString
 readConfigFile p = compSrcReq cfgFileSrcId (ReadFile p)
 
-defineComps :: TimeIntervalType -> CompDefM (Comp () ())
-defineComps timeUpdateInterval = do
-  cfgC <- defineComp getCfgCompDef
-  activePatsC <- defineComp (activePatsCompDef timeUpdateInterval)
-  visiblePatsC <- defineComp (visiblePatsCompDef timeUpdateInterval cfgC activePatsC)
-  recentPatsC <- defineComp (recentPatsCompDef timeUpdateInterval cfgC visiblePatsC)
-  getPatC <- defineComp (getPatCompDef visiblePatsC)
-  patNotesC <- defineComp patNotesCompDef
-  detailsC <- defineComp (detailsCompDef getPatC patNotesC)
-  overviewC <- defineComp (overviewCompDef visiblePatsC recentPatsC detailsC)
+wireComps :: TimeIntervalType -> CompWireM (Comp () ())
+wireComps timeUpdateInterval = do
+  cfgC <- wireComp getCfgCompDef
+  activePatsC <- wireComp (activePatsCompDef timeUpdateInterval)
+  visiblePatsC <- wireComp (visiblePatsCompDef timeUpdateInterval cfgC activePatsC)
+  recentPatsC <- wireComp (recentPatsCompDef timeUpdateInterval cfgC visiblePatsC)
+  getPatC <- wireComp (getPatCompDef visiblePatsC)
+  patNotesC <- wireComp patNotesCompDef
+  detailsC <- wireComp (detailsCompDef getPatC patNotesC)
+  overviewC <- wireComp (overviewCompDef visiblePatsC recentPatsC detailsC)
   pure overviewC
 
 data HospitalPaths = HospitalPaths

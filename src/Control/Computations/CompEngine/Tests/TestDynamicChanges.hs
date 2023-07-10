@@ -113,13 +113,13 @@ instance CompSrc TestFlow where
 
 testGeneric
   :: (RunCounters -> String)
-  -> (CompDefM (Comp () ()))
+  -> (CompWireM (Comp () ()))
   -> Int
   -- ^ maximal number of runs
   -> IO RunCounters
 testGeneric getFun getComps limit =
   do
-    (_compMap, comps) <- failInM $ runCompDefM gaps
+    (_compMap, comps) <- failInM $ runCompWireM gaps
     (sif, closeSif) <- initStateIf True
     reg <- newCompFlowRegistry
     tflow <- initTestFlow getFun

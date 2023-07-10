@@ -31,7 +31,6 @@ import Control.Computations.Utils.Types
 -- EXTERNAL
 ----------------------------------------
 
-import Control.Concurrent.STM
 import Control.Monad.Extra
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HashMap
@@ -49,8 +48,7 @@ data HospitalPipelineOptions = HospitalPipelineOptions
 hospitalPipeline :: HospitalPipelineOptions -> IO ()
 hospitalPipeline opts = do
   paths <- setup (hpo_rootDir opts) (hpo_configDir opts)
-  runVar <- newTVarIO None
-  compDriver runVar (withCompFlows paths) (defineComps TimeInterval10s) ()
+  compDriver (withCompFlows paths) (wireComps TimeInterval10s) ()
 
 data HospitalSimulationOptions = HospitalSimulationOptions
   { hso_rootDir :: FilePath

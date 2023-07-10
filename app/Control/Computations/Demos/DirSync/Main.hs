@@ -47,13 +47,13 @@ mkdir :: FilePath -> CompM ()
 mkdir p = compSinkReq fileSinkId (MakeDirs p)
 
 fileSyncCompDef :: FilePath -> CompDef FilePath ()
-fileSyncCompDef src = mkCompDef "fileSyncComp" fullCaching $ \path ->
+fileSyncCompDef src = defineComp "fileSyncComp" fullCaching $ \path ->
   do
     bs <- readFile (src </> path)
     writeFile path bs
 
 dirSyncCompDef :: FilePath -> Comp FilePath () -> Comp FilePath () -> CompDef FilePath ()
-dirSyncCompDef src fileComp dirComp = mkCompDef "dirSyncComp" fullCaching $ \path ->
+dirSyncCompDef src fileComp dirComp = defineComp "dirSyncComp" fullCaching $ \path ->
   do
     mkdir path
     contents <- listDir (src </> path)
@@ -82,9 +82,9 @@ withCompFlows tgt reg action =
     registerCompSink reg ioSink
     action
 
-defineComps :: FilePath -> CompDefM (Comp FilePath ())
-defineComps src = do
-  fileComp <- defineComp (fileSyncCompDef src)
+wireComps :: FilePath -> CompWireM (Comp FilePath ())
+wireComps src = do
+  fileComp <- wireComp (fileSyncCompDef src)
   defineRecursiveComp (dirSyncCompDef src fileComp)
 
 syncDirs :: FilePath -> FilePath -> IO ()
@@ -97,4 +97,4 @@ syncDirs' :: TVar (Option RunStats) -> FilePath -> FilePath -> IO ()
 syncDirs' runVar src' tgt' = do
   src <- canonicalizePath src'
   tgt <- canonicalizePath tgt'
-  compDriver runVar (withCompFlows tgt) (defineComps src) "."
+  compDriver' runVar (withCompFlows tgt) (wireComps src) "."

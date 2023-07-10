@@ -58,7 +58,7 @@ put k v = compSinkReq hashMapSinkId (HashMapStoreReq k v)
 
 runCompEngineTest
   :: (Typeable r, Show r)
-  => CompDefM (Comp () r)
+  => CompWireM (Comp () r)
   -> (HashMapFlow -> ShouldStartNextRun a IO)
   -> a
   -> (HashMapFlow -> IO ())
@@ -70,7 +70,7 @@ runCompEngineTest compDefs shouldStart istate doTest =
 
 initCompEngineTest
   :: (Show r, Typeable r)
-  => CompDefM (Comp () r)
+  => CompWireM (Comp () r)
   -> IO
       ( HashMapFlow
       , CompRunIterationLimit
@@ -86,7 +86,7 @@ initCompEngineTest compDefs =
     registerCompSrc reg hmFlow
     registerCompSink reg hmFlow
     registerCompSink reg ioSink
-    (_compMap, mainComp) <- failInM $ runCompDefM compDefs
+    (_compMap, mainComp) <- failInM $ runCompWireM compDefs
     (stateIf, closeSif) <- initStateIf True
     let caps = [wrapCompAp (mkCompAp mainComp ())]
         startTest u v w x =

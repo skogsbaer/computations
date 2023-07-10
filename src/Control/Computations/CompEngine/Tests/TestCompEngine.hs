@@ -211,7 +211,7 @@ wardListWit_v3 = versioned wardListItem_v3 ("v3")
 
 wardGenDef :: CompDef Id ()
 wardGenDef =
-  mkCompDef "wardGen" inMemoryShowCaching $ \wid ->
+  defineComp "wardGen" inMemoryShowCaching $ \wid ->
     do
       Just item <- (pureInfo $ "Reading " ++ show wid) $! getItem wid
       writeItem (item :: NItem)
@@ -220,7 +220,7 @@ allWardsCompDef
   :: Comp Id ()
   -> CompDef () ()
 allWardsCompDef wardGen =
-  mkCompDef "allWards" inMemoryShowCaching $ \() ->
+  defineComp "allWards" inMemoryShowCaching $ \() ->
     do
       Just (ListItem wardList) <- getItem listId
       mapM_ (evalComp wardGen) wardList
@@ -235,7 +235,7 @@ type CountRuns = HM.HashMap AnyCompAp (Integer, Integer)
 runCompEngineTest
   :: [SomeItem]
   -> [SomeItem]
-  -> (CompDefM (Comp () ()))
+  -> (CompWireM (Comp () ()))
   -> (([SomeItem], [SomeItem]) -> IO ())
   -> IO ()
 runCompEngineTest initialItems nextItems compDefs doTest =
@@ -248,7 +248,7 @@ runCompEngineTest initialItems nextItems compDefs doTest =
     registerCompSrc reg hmOutput
     registerCompSink reg hmInput
     registerCompSink reg hmOutput
-    (_compMap, mainComp) <- failInM $ runCompDefM compDefs
+    (_compMap, mainComp) <- failInM $ runCompWireM compDefs
     (stateIf, closeSif) <- initStateIf True
     let caps = [wrapCompAp (mkCompAp mainComp ())]
     let run = do
@@ -329,11 +329,11 @@ genData first after start startValue doTest =
  where
   compDefs =
     do
-      subComp <- defineComp start
-      defineComp (mainCompDef subComp)
+      subComp <- wireComp start
+      wireComp (mainCompDef subComp)
    where
     mainCompDef subComp =
-      mkCompDef "main" inMemoryShowCaching $ \() ->
+      defineComp "main" inMemoryShowCaching $ \() ->
         void $ evalComp subComp startValue
 
 genAllWards
@@ -346,8 +346,8 @@ genAllWards first after doTest =
  where
   compDefs =
     do
-      subComp <- defineComp wardGenDef
-      defineComp (allWardsCompDef subComp)
+      subComp <- wireComp wardGenDef
+      wireComp (allWardsCompDef subComp)
 
 mkTextRes :: T.Text -> SomeItem
 mkTextRes = SomeItem . NItem forgetIdVal
@@ -399,7 +399,7 @@ test_changesWithinRun =
     -> Comp String String
     -> CompDef () ()
   compCDef compA compB =
-    mkCompDef "CompC" fullCaching $ \_ ->
+    defineComp "CompC" fullCaching $ \_ ->
       do
         Just _ <- evalComp compA ()
         Just _ <- evalComp compB "labReport1"
@@ -411,23 +411,23 @@ test_changesWithinRun =
     :: Comp () String
     -> CompDef String String
   compBDef compA =
-    mkCompDef "CompB" fullCaching $ \_ ->
+    defineComp "CompB" fullCaching $ \_ ->
       do
         Just msg <- evalComp compA ()
         return (take 5 msg)
   compADef :: CompDef () String
   compADef =
-    mkCompDef "CompA" fullCaching $ \_ ->
+    defineComp "CompA" fullCaching $ \_ ->
       do
         msg <- requestExt
         let junk = replicate (401 * 1024) '0'
         return (msg ++ junk)
-  getComps :: CompDefM (Comp () ())
+  getComps :: CompWireM (Comp () ())
   getComps =
     do
-      compA <- defineComp (compADef)
-      compB <- defineComp (compBDef compA)
-      defineComp (compCDef compA compB)
+      compA <- wireComp (compADef)
+      compB <- wireComp (compBDef compA)
+      wireComp (compCDef compA compB)
 
 -- partial functions in tests can be tolerated
 {-# ANN test_revive ("HLint: ignore Partial function" :: String) #-}
@@ -441,7 +441,7 @@ test_revive =
     :: Comp () String
     -> Comp String String
     -> CompDef () ()
-  compCDef compA compB = mkCompDef "CompC" fullCaching $ \_ -> do
+  compCDef compA compB = defineComp "CompC" fullCaching $ \_ -> do
     Just x <- evalComp compA ()
     Just y <- case x of
       "A" -> evalComp compB "patItem1"
@@ -450,14 +450,14 @@ test_revive =
     putReq (x ++ y)
     return ()
   compBDef :: CompDef String String
-  compBDef = mkCompDef "CompB" fullCaching $ \_ -> requestExt
+  compBDef = defineComp "CompB" fullCaching $ \_ -> requestExt
   compADef :: CompDef () String
-  compADef = mkCompDef "CompA" fullCaching $ \_ -> requestExt
+  compADef = defineComp "CompA" fullCaching $ \_ -> requestExt
   getComps =
     do
-      compA <- defineComp (compADef)
-      compB <- defineComp (compBDef)
-      defineComp (compCDef compA compB)
+      compA <- wireComp (compADef)
+      compB <- wireComp (compBDef)
+      wireComp (compCDef compA compB)
   getFun :: RunCounters -> String
   getFun r =
     let str = "AABBBCDD" ++ (repeat 'D')

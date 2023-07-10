@@ -35,13 +35,13 @@ test_whenComputationDoesntGenerateOutputAnymoreItIsDeleted :: IO ()
 test_whenComputationDoesntGenerateOutputAnymoreItIsDeleted =
   runCompEngineTest compDefs shouldStartNextRun () doTest
  where
-  compDefs = defineComp mainCompDef
+  compDefs = wireComp mainCompDef
    where
     parseInt :: Maybe BS.ByteString -> Int
     parseInt x = fromMaybe 0 (x >>= readM . T.unpack . T.decodeUtf8)
     mainCompDef :: CompDef () ()
     mainCompDef =
-      mkCompDef "main" inMemoryShowCaching $ \() ->
+      defineComp "main" inMemoryShowCaching $ \() ->
         do
           start <- liftM parseInt (get "start")
           end <- liftM parseInt (get "end")
@@ -77,18 +77,18 @@ test_ifTwoCompApsProduceTheSameOutputAndOneOfThemDiesTheOutputIsNotDeleted =
  where
   compDefs =
     do
-      subComp <- defineComp subCompDef
-      defineComp (mainCompDef subComp)
+      subComp <- wireComp subCompDef
+      wireComp (mainCompDef subComp)
    where
     subCompDef :: CompDef Bool ()
     subCompDef =
-      mkCompDef "sub" inMemoryShowCaching $ \b ->
+      defineComp "sub" inMemoryShowCaching $ \b ->
         do
           pureInfo "Generating dummy output" $
             put "output" (if b then "yes" else "no")
     mainCompDef :: Comp Bool () -> CompDef () ()
     mainCompDef subComp =
-      mkCompDef "main" inMemoryShowCaching $ \() ->
+      defineComp "main" inMemoryShowCaching $ \() ->
         do
           evalCompOrFail subComp False
           flag <- isYes <$> get "flag-main"
@@ -119,17 +119,17 @@ test_whenComputationIsNotCalledAnymoreItsOutputIsDeleted =
  where
   compDefs =
     do
-      subComp <- defineComp subCompDef
-      defineComp (mainCompDef subComp)
+      subComp <- wireComp subCompDef
+      wireComp (mainCompDef subComp)
    where
     subCompDef :: CompDef () ()
     subCompDef =
-      mkCompDef "sub" inMemoryShowCaching $ \() ->
+      defineComp "sub" inMemoryShowCaching $ \() ->
         pureInfo "Generating dummy output" $
           put "output" "dummy"
     mainCompDef :: Comp () () -> CompDef () ()
     mainCompDef subComp =
-      mkCompDef "main" inMemoryShowCaching $ \() ->
+      defineComp "main" inMemoryShowCaching $ \() ->
         do
           flag <- liftM isYes (get "flag")
           when flag (evalCompOrFail subComp ())
@@ -159,16 +159,16 @@ test_whenOneComputationGeneratingOutputDiesAndAnotherReplacesItTheOutputIsNotDel
  where
   compDefs =
     do
-      subComp <- defineComp subCompDef
-      defineComp (mainCompDef subComp)
+      subComp <- wireComp subCompDef
+      wireComp (mainCompDef subComp)
    where
     subCompDef :: CompDef Bool ()
     subCompDef =
-      mkCompDef "sub" inMemoryShowCaching $ \_ ->
+      defineComp "sub" inMemoryShowCaching $ \_ ->
         pureInfo "Generating dummy output" $ put "output" "dummy"
     mainCompDef :: Comp Bool () -> CompDef () ()
     mainCompDef subComp =
-      mkCompDef "main" inMemoryShowCaching $ \() ->
+      defineComp "main" inMemoryShowCaching $ \() ->
         do
           flag <- liftM isYes (get "flag")
           evalCompOrFail subComp flag
@@ -192,13 +192,13 @@ test_oneComputationRecomputedButOtherUnreferencesIt =
  where
   compDefs =
     do
-      commonComp <- defineComp commonCompDef
-      subComp <- defineComp (subCompDef commonComp)
-      defineComp (mainCompDef commonComp subComp)
+      commonComp <- wireComp commonCompDef
+      subComp <- wireComp (subCompDef commonComp)
+      wireComp (mainCompDef commonComp subComp)
    where
     commonCompDef :: CompDef () Bool
     commonCompDef =
-      mkCompDef "common" inMemoryShowCaching $ \_ ->
+      defineComp "common" inMemoryShowCaching $ \_ ->
         do
           flag <- liftM isYes (get "flag")
           pureInfo "Generating common output" $
@@ -206,7 +206,7 @@ test_oneComputationRecomputedButOtherUnreferencesIt =
           return flag
     subCompDef :: Comp () Bool -> CompDef Bool ()
     subCompDef commonComp =
-      mkCompDef "asub" inMemoryShowCaching $ \_ ->
+      defineComp "asub" inMemoryShowCaching $ \_ ->
         do
           flag <- evalCompOrFail commonComp ()
           pureInfo "Generating sub output" $
@@ -216,7 +216,7 @@ test_oneComputationRecomputedButOtherUnreferencesIt =
       -> Comp Bool ()
       -> CompDef () ()
     mainCompDef commonComp subComp =
-      mkCompDef "main" inMemoryShowCaching $ \() ->
+      defineComp "main" inMemoryShowCaching $ \() ->
         do
           flag <- evalCompOrFail commonComp ()
           unless flag $

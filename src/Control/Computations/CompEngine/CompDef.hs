@@ -5,16 +5,17 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
 module Control.Computations.CompEngine.CompDef (
   CompDef (..),
-  mkCompDef,
-  mkCompDefX,
-  mkCompDefWithPriority,
-  mkIncCompDef,
-  CompDefM,
-  runCompDefM,
   defineComp,
+  defineCompX,
+  defineCompWithPriority,
+  defineIncComp,
+  CompWireM,
+  runCompWireM,
+  wireComp,
   defineRecursiveComp,
 )
 where
@@ -41,64 +42,67 @@ import qualified Data.Text as T
 
 newtype CompDef p a = CompDef {unCompDef :: CompMap -> Comp p a}
 
-mkCompDefX
-  :: forall p r
-   . String
+defineCompX
+  :: forall p r .
+     (IsCompParam p, IsCompResult r)
+  => String
   -> CompCacheBehavior r
   -> CompFunX p r
   -> CompDef p r
-mkCompDefX name caching fun =
+defineCompX name caching fun =
   CompDef $ \cm -> Comp (mkCompId name) caching fun cm
 
-mkCompDef
-  :: String
+defineComp
+  :: (IsCompParam p, IsCompResult r)
+  => String
   -> CompCacheBehavior r
   -> CompFun p r
   -> CompDef p r
-mkCompDef a c f = mkCompDefX a c (f . ce_param)
+defineComp a c f = defineCompX a c (f . ce_param)
 
-mkCompDefWithPriority
-  :: PaqPriority
+defineCompWithPriority
+  :: (IsCompParam p, IsCompResult r)
+  => PaqPriority
   -> T.Text
   -> CompCacheBehavior r
   -> CompFun p r
   -> CompDef p r
-mkCompDefWithPriority prio name caching fun =
+defineCompWithPriority prio name caching fun =
   CompDef $ \cm -> Comp (mkCompIdWithPriority prio name) caching (fun . ce_param) cm
 
-mkIncCompDef :: (IsCompResult r, LargeHashable r) => String -> r -> (p -> r -> CompM r) -> CompDef p r
-mkIncCompDef name initState updateFun =
-  mkCompDefX name fullCaching $ \ce ->
+defineIncComp :: (IsCompParam p, IsCompResult r, LargeHashable r) => String -> r -> (p -> r -> CompM r) -> CompDef p r
+defineIncComp name initState updateFun =
+  defineCompX name fullCaching $ \ce ->
     do
       mCachedValue <- ce_cachedResult ce
       updateFun (ce_param ce) (fromMaybe initState mCachedValue)
 
-newtype CompDefM a = CompDefM (StateT CompMap Fail a)
+newtype CompWireM a = CompWireM (StateT CompMap Fail a)
   deriving (Functor, Applicative, Monad, MonadFail, MonadFix)
 
-getCompMap :: CompDefM CompMap
-getCompMap = CompDefM get
+getCompMap :: CompWireM CompMap
+getCompMap = CompWireM get
 
-defineComp :: (IsCompResult a, IsCompParam p) => CompDef p a -> CompDefM (Comp p a)
-defineComp (CompDef mkCompDef) =
+wireComp :: (IsCompResult a, IsCompParam p) => CompDef p a -> CompWireM (Comp p a)
+wireComp (CompDef defineComp) =
   do
-    comp <- liftM mkCompDef getCompMap
+    comp <- liftM defineComp getCompMap
     insertComp comp
 
 defineRecursiveComp
   :: (IsCompResult a, IsCompParam p)
   => (Comp p a -> CompDef p a)
-  -> CompDefM (Comp p a)
+  -> CompWireM (Comp p a)
 defineRecursiveComp f =
-  mfix $ \comp -> defineComp (f comp)
+  mfix $ \comp -> wireComp (f comp)
 
 insertComp
   :: forall p a
    . (IsCompResult a, IsCompParam p)
   => Comp p a
-  -> CompDefM (Comp p a)
+  -> CompWireM (Comp p a)
 insertComp comp =
-  CompDefM $
+  CompWireM $
     do
       seen <- get
       case Map.lookup (comp_name comp) seen of
@@ -109,6 +113,6 @@ insertComp comp =
             put (Map.insert (comp_name comp) (AnyComp comp) seen)
             return comp
 
-runCompDefM :: CompDefM a -> Fail (CompMap, a)
-runCompDefM (CompDefM action) =
+runCompWireM :: CompWireM a -> Fail (CompMap, a)
+runCompWireM (CompWireM action) =
   fmap (\(x, y) -> (y, x)) (runStateT action Map.empty)

@@ -41,15 +41,15 @@ test_whenComputationDoesntGenerateOutputAnymoreItIsDeleted =
  where
   compDefs =
     do
-      writerC <- defineComp writerCompDef
-      dummyC <- defineComp dummyCompDef
-      defineComp (mainCompDef dummyC writerC)
+      writerC <- wireComp writerCompDef
+      dummyC <- wireComp dummyCompDef
+      wireComp (mainCompDef dummyC writerC)
    where
     parseBool :: Maybe BS.ByteString -> Bool
     parseBool x = Just True == (x >>= readM . T.unpack . T.decodeUtf8)
     mainCompDef :: DummyC Comp -> WriterC Comp -> MainC CompDef
     mainCompDef dummyComp writerComp =
-      mkCompDef "main" inMemoryShowCaching $ \() ->
+      defineComp "main" inMemoryShowCaching $ \() ->
         do
           Just _ <- evalComp dummyComp "dummy1"
           Just _ <- evalComp dummyComp "dummy2"
@@ -58,13 +58,13 @@ test_whenComputationDoesntGenerateOutputAnymoreItIsDeleted =
           return ()
     dummyCompDef :: DummyC CompDef
     dummyCompDef =
-      mkCompDef "dummy" inMemoryShowCaching $ \_ ->
+      defineComp "dummy" inMemoryShowCaching $ \_ ->
         do
           _ <- liftM parseBool (get (T.encodeUtf8 "writeFlag"))
           return ()
     writerCompDef :: WriterC CompDef
     writerCompDef =
-      mkCompDef "writer" inMemoryShowCaching $ \key ->
+      defineComp "writer" inMemoryShowCaching $ \key ->
         do
           writeFlag <- liftM parseBool (get (T.encodeUtf8 "writeFlag"))
           when writeFlag (put (T.encodeUtf8 key) "value")
