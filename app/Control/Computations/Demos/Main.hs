@@ -38,7 +38,7 @@ data DirSyncOptions = DirSyncOptions
   , dso_targetDir :: FilePath
   }
 
-data SimpleOptions = SimpleOptions --empty for now
+data SimpleOptions = SimpleOptions -- empty for now
 
 data TestOptions = TestOptions -- empty for now
 
@@ -63,12 +63,12 @@ optionsParser = do
                 (progDesc "Demo syncing a directory to some other directory")
           )
           <> command
-          "simple"
-          ( Simple
-              <$> info
-                simpleCommand
-                (progDesc "Simple demo counting lines in files")
-          )
+            "simple"
+            ( Simple
+                <$> info
+                  simpleCommand
+                  (progDesc "Simple demo counting lines in files")
+            )
           <> command
             "test"
             ( RunTests

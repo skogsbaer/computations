@@ -143,7 +143,7 @@ executeImpl sink req =
           logIfFailure res
           pure (HashSet.singleton (FileSinkOut out File), res)
       WriteTextFile p s ->
-         executeImpl sink (WriteFile p (T.encodeUtf8 (T.pack s)))
+        executeImpl sink (WriteFile p (T.encodeUtf8 (T.pack s)))
       MakeDirs p' ->
         do
           (p, out) <- qualifyPath sink p'

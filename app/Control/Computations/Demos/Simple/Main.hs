@@ -1,5 +1,5 @@
 module Control.Computations.Demos.Simple.Main (
-  simpleMain
+  simpleMain,
 ) where
 
 ----------------------------------------
@@ -9,8 +9,8 @@ import Control.Computations.CompEngine
 import Control.Computations.FlowImpls.FileSink
 import Control.Computations.FlowImpls.FileSrc
 import Control.Computations.FlowImpls.IOSink
-import Control.Computations.Utils.Logging
 import Control.Computations.Utils.IOUtils
+import Control.Computations.Utils.Logging
 
 ----------------------------------------
 -- EXTERNAL
@@ -29,12 +29,13 @@ fileSink = typedCompSinkId (Proxy @FileSink) "fileSink"
 
 numberOfLinesCompDef :: CompDef FilePath Int
 numberOfLinesCompDef =
- defineComp "numberOfLines" fullCaching $ \p -> do
-  string <- compSrcReq fileSrc (ReadTextFile p)
-  pure (length (lines string))
+  defineComp "numberOfLines" fullCaching $ \p -> do
+    string <- compSrcReq fileSrc (ReadTextFile p)
+    pure (length (lines string))
 
-sumCompDef :: Comp FilePath Int
-           -> CompDef FilePath Int
+sumCompDef
+  :: Comp FilePath Int
+  -> CompDef FilePath Int
 sumCompDef c = defineComp "sum" fullCaching $ \p -> do
   string <- compSrcReq fileSrc (ReadTextFile p)
   list <- mapM (evalCompOrFail c) (lines string)
@@ -42,15 +43,15 @@ sumCompDef c = defineComp "sum" fullCaching $ \p -> do
 
 storeCompDef :: Comp FilePath Int -> CompDef () ()
 storeCompDef c = do
- defineComp "store" fullCaching $ \() -> do
-  i <- evalCompOrFail c "file_list.txt"
-  compSinkReq fileSink (WriteTextFile "output.txt" ("number of lines: " ++ show i))
+  defineComp "store" fullCaching $ \() -> do
+    i <- evalCompOrFail c "file_list.txt"
+    compSinkReq fileSink (WriteTextFile "output.txt" ("number of lines: " ++ show i))
 
 wireAllComps :: CompWireM (Comp () ())
 wireAllComps = do
- numberOfLinesC <- wireComp numberOfLinesCompDef
- sumC <- wireComp (sumCompDef numberOfLinesC)
- wireComp (storeCompDef sumC)
+  numberOfLinesC <- wireComp numberOfLinesCompDef
+  sumC <- wireComp (sumCompDef numberOfLinesC)
+  wireComp (storeCompDef sumC)
 
 withCompFlows :: FilePath -> CompFlowRegistry -> IO () -> IO ()
 withCompFlows tgt reg action =

@@ -43,8 +43,8 @@ import qualified Data.Text as T
 newtype CompDef p a = CompDef {unCompDef :: CompMap -> Comp p a}
 
 defineCompX
-  :: forall p r .
-     (IsCompParam p, IsCompResult r)
+  :: forall p r
+   . (IsCompParam p, IsCompResult r)
   => String
   -> CompCacheBehavior r
   -> CompFunX p r
