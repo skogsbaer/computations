@@ -3,10 +3,7 @@ cradle:
     - path: "./src"
       component: "incremental-computations:lib"
 
-    - path: "./app/Main.hs"
-      component: "incremental-computations:exe:incremental-computations-exe"
-
-    - path: "./app/Paths_incremental_computations.hs"
+    - path: "./app"
       component: "incremental-computations:exe:incremental-computations-exe"
 
     - path: "./test"
