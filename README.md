@@ -10,7 +10,12 @@ a commercial software product developed by medilyse GmbH, Freiburg, Germany.
 
 The repository also contains two demo applications using the framework.
 
-More documentation is to come.
+There is an accompanying article:
+
+> Stefan Wehr. 2023. A Software Architecture Based on Coarse-Grained
+> Self-Adjusting Computations. Proceedings of FUNARCH 2023.
+> Seattle, WA, USA. ACM, 2023.
+> [Preprint](Wehr_A-Software-Architecture-Based-on-Coarse-Grained-Self-Adjusting-Computations.pdf)
 
 ## Building
 
